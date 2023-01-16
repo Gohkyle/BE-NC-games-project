@@ -12,6 +12,22 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
+## Tasks
+
+Responds with:
+
+a review object, which should have the following properties:
+
+review_id
+title
+review_body
+designer
+review_img_url
+votes
+category
+owner
+created_at
+
 ## Git Branching and Pull Requests
 
 You will be working on each ticket on a new **branch**.
