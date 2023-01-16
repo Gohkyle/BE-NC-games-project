@@ -9,4 +9,5 @@ app.get("/api/categories", getCategories);
 app.use("*", handleRouteErrors);
 
 app.use(handleServerErrors);
+
 module.exports = app;
