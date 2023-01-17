@@ -209,3 +209,37 @@ describe("GET /api/reviews/:review_id/comments", () => {
     });
   });
 });
+
+// 200: returns the updated review
+// 200: updates the database with the new value
+// error handling: 400 incorrect type
+// error handling: 404 malformed body
+// error handling: 404, review not found
+// error handling: 400, data type
+describe.only("PATCH /api/reviews/:review_id", () => {
+  test("200: returns the updated review", () => {
+    return request(app)
+      .patch("/api/reviews/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body: { updatedReview } }) => {
+        expect(updatedReview).toHaveProperty("review_id", 2);
+        expect(updatedReview).toHaveProperty("title", "Jenga");
+        expect(updatedReview).toHaveProperty("designer", "Leslie Scott");
+        expect(updatedReview).toHaveProperty("owner", "philippaclaire9");
+        expect(updatedReview).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
+        );
+        expect(updatedReview).toHaveProperty(
+          "review_body",
+          "Fiddly fun for all the family"
+        );
+        expect(updatedReview).toHaveProperty(
+          "created_at",
+          "2021-01-18T10:01:41.251Z"
+        );
+        expect(updatedReview).toHaveProperty("votes", 6);
+      });
+  });
+});

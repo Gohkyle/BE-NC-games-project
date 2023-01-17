@@ -3,6 +3,7 @@ const {
   fetchReviewsByReviewId,
   fetchCommentsByReviewId,
   fetchReviews,
+  updateReview,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -36,4 +37,12 @@ exports.getCommentsByReviewId = (request, response, next) => {
       response.status(200).send({ comments });
     })
     .catch(next);
+};
+
+exports.patchReview = (request, response, next) => {
+  const { inc_votes } = request.body;
+  const { review_id } = request.params;
+  updateReview(review_id, inc_votes).then((updatedReview) => {
+    response.status(200).send({ updatedReview });
+  });
 };

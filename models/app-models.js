@@ -46,3 +46,16 @@ exports.fetchCommentsByReviewId = (review_id) => {
     return rows;
   });
 };
+
+exports.updateReview = (review_id, inc_votes) => {
+  const queryStr = `
+  UPDATE reviews
+  SET votes = votes + $1
+  WHERE review_id = $2
+  RETURNING *;
+  `;
+  return db.query(queryStr, [inc_votes, review_id]).then(({ rows }) => {
+    console.log(rows);
+    return rows[0];
+  });
+};
