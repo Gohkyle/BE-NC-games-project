@@ -34,3 +34,4 @@ exports.fetchReviewsByReviewId = (reviewId) => {
     return rows[0];
   });
 };
+
