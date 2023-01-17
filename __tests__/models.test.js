@@ -20,7 +20,6 @@ describe("GET /api/notARoute", () => {
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Route Does Not Exist");
       });
-
   });
 });
 
@@ -146,4 +145,3 @@ describe("GET /api/reviews/:review_id", () => {
     });
   });
 });
-
