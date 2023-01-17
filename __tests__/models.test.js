@@ -212,18 +212,22 @@ describe("GET /api/reviews/:review_id/comments", () => {
 
 describe("POST /api/reviews/:review_id/comments", () => {
   test("201: post request responds with the comment", () => {
+    const commentBody = { username: "philippaclaire9", body: "Hello" };
+
     return request(app)
       .post("/api/reviews/1/comments")
-      .send({ username: "philippaclaire9", body: "Hello" })
+      .send(commentBody)
       .expect(201)
       .then(({ body: { postedComment } }) => {
         expect(postedComment).toBe("Hello");
       });
   });
   test("200: first comment added to a review_id, get request to /api/reviews/review_id/comments resolves to have length 1", () => {
+    const commentBody = { username: "philippaclaire9", body: "Hello" };
+
     return request(app)
       .post("/api/reviews/1/comments")
-      .send({ username: "philippaclaire9", body: "Hello" })
+      .send(commentBody)
       .then(() => {
         return request(app)
           .get("/api/reviews/1/comments")
@@ -239,35 +243,41 @@ describe("POST /api/reviews/:review_id/comments", () => {
   });
   describe("Error Handlers:", () => {
     test("400: malformed request body (23502)", () => {
+      const commentBody = { creator: "philippaclaire9", form: "Hello" };
+
       return request(app)
         .post("/api/reviews/1/comments")
-        .send({ creator: "philippaclaire9", form: "Hello" })
+        .send(commentBody)
         .expect(400)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad Request");
         });
     });
     test("404: username not recognised (23503)", () => {
+      commentBody = { username: "EddTheDuck", body: "Quack" };
+
       return request(app)
         .post("/api/reviews/1/comments")
-        .send({ username: "EddTheDuck", body: "Quack" })
+        .send(commentBody)
         .expect(404)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Username Not Found");
         });
     });
     test("404: review_id does not exist", () => {
+      const commentBody = { username: "philippaclaire9", body: "Hello" };
       return request(app)
         .post("/api/reviews/99999/comments")
-        .send({ username: "philippaclaire9", body: "Hello" })
+        .send(commentBody)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("ID Not Found");
         });
     });
     test("400: invalid data type for review_id", () => {
+      const commentBody = { username: "philippaclaire9", body: "Hello" };
       return request(app)
         .post("/api/reviews/review/comments")
-        .send({ username: "philippaclaire9", body: "Hello" })
+        .send(commentBody)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad Request");
         });
