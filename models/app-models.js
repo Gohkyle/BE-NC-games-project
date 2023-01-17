@@ -35,3 +35,15 @@ exports.fetchReviewsByReviewId = (reviewId) => {
   });
 };
 
+exports.fetchCommentsByReviewId = (review_id) => {
+  const queryStr = `
+        SELECT * FROM comments
+        WHERE review_id = $1
+        ORDER BY created_at DESC
+    ;`;
+
+  return db.query(queryStr, [review_id]).then(({ rows, rowCount }) => {
+    return rows;
+  });
+};
+

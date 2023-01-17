@@ -24,10 +24,7 @@ describe("GET /api/notARoute", () => {
 });
 
 describe("GET /api/categories", () => {
-  test("statuscode: 200", () => {
-    return request(app).get("/api/categories").expect(200);
-  });
-  test("resolves with an categories array", () => {
+  test("200: resolves with an categories array", () => {
     return request(app)
       .get("/api/categories")
       .expect(200)
@@ -36,7 +33,7 @@ describe("GET /api/categories", () => {
         expect(categories).toHaveLength(4);
       });
   });
-  test("resolves with an array with the correct keys", () => {
+  test("200: resolves with an array with the correct keys", () => {
     return request(app)
       .get("/api/categories")
       .expect(200)
@@ -47,7 +44,6 @@ describe("GET /api/categories", () => {
         });
       });
   });
-});
 
 describe("GET /api/reviews", () => {
   test("resolves with an reviews array", () => {
@@ -103,6 +99,7 @@ describe("GET /api/reviews", () => {
       });
   });
 });
+
 describe("GET /api/reviews/:review_id", () => {
   test("resolves with a review object with all the correct keys and values", () => {
     return request(app)
@@ -138,6 +135,73 @@ describe("GET /api/reviews/:review_id", () => {
     test("sends back a 400 request for invalid ID data types", () => {
       return request(app)
         .get("/api/reviews/nine")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+
+describe("GET /api/reviews/:review_id/comments", () => {
+  test("200: resolves with an array of comments for the given review_id", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeInstanceOf(Array);
+        // split these up?
+        expect(comments).toHaveLength(3);
+
+        comments.forEach((comment) => {
+          expect(comment.review_id).toBe(2);
+        });
+      });
+  });
+  test("200: resolves with an comment objects with the correct keys", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        comments.forEach((comment) => {
+          expect(comment).toHaveProperty("comment_id");
+          expect(comment).toHaveProperty("votes");
+          expect(comment).toHaveProperty("created_at");
+          expect(comment).toHaveProperty("author");
+          expect(comment).toHaveProperty("body");
+          expect(comment).toHaveProperty("review_id");
+        });
+      });
+  });
+  test("200: comments are ordered in most recent first, descending?", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: reviews with no comments should respond with an empty array", () => {
+    return request(app)
+      .get("/api/reviews/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
+  describe("Error Handlers", () => {
+    test("400: Bad Request, for invalid review _id", () => {
+      return request(app)
+        .get("/api/reviews/99999/comments")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Does Not Exist");
+        });
+    });
+    test("404: Not Found, for review_id does not exist", () => {
+      return request(app)
+        .get("/api/reviews/two/comments")
         .expect(400)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad Request");

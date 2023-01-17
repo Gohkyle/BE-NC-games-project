@@ -12,7 +12,6 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
-
 ## Git Branching and Pull Requests
 
 You will be working on each ticket on a new **branch**.
