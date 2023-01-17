@@ -14,7 +14,12 @@ afterAll(() => {
 
 describe("GET /api/notARoute", () => {
   test("resolves with a 404: Not found for route that does not exist", () => {
-    return request(app).get("/api/notaroute").expect(404);
+    return request(app)
+      .get("/api/notaroute")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Route Does Not Exist");
+      });
   });
 });
 

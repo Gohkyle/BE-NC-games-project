@@ -1,6 +1,5 @@
-exports.handleRouteErrors = (error, request, response, next) => {
-  response.status(404).send("Route Does Not Exist");
-  next(error);
+exports.handleRouteErrors = (request, response, next) => {
+  response.status(404).send({ msg: "Route Does Not Exist" });
 };
 
 exports.handleCustomErrors = (error, request, response, next) => {

@@ -21,7 +21,7 @@ app.get("/api/reviews", getReviews);
 
 app.get("/api/reviews/:review_id", getReviewsByReviewId);
 
-// app.use("*", handleRouteErrors);
+app.use(handleRouteErrors);
 
 app.use(handleCustomErrors);
 
