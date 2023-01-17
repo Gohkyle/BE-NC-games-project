@@ -1,12 +1,26 @@
 const express = require("express");
-const { handleRouteErrors, handleServerErrors } = require("./errors/");
+const {
+  handleRouteErrors,
+  handleCustomErrors,
+  handlePsqlErrors,
+  handleServerErrors,
+} = require("./errors/");
 const app = express();
 
-const { getCategories } = require("./controllers/app-controllers");
+const {
+  getCategories,
+  getCommentsByReviewId,
+} = require("./controllers/app-controllers");
 
 app.get("/api/categories", getCategories);
 
-app.use("*", handleRouteErrors);
+app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
+
+app.use(handleCustomErrors);
+
+app.use(handlePsqlErrors);
+
+app.use(handleRouteErrors);
 
 app.use(handleServerErrors);
 

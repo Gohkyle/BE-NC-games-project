@@ -12,17 +12,20 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
-## TASK
+## TASKS
 
-Responds with:
+6. GET /api/reviews/:review_id/comments
+   Responds with:
 
-- an array of category objects, each of which should have the following properties:
-  - `slug`
-  - `description`
+an array of comments for the given review_id of which each comment should have the following properties:
 
-As this is the first endpoint you will need to set up your testing suite.
-
-Errors handled.
+- comment_id
+- votes
+- created_at
+- author
+- body
+- review_id
+  comments should be served with the most recent comments first
 
 ## Git Branching and Pull Requests
 
