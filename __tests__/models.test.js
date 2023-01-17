@@ -84,13 +84,21 @@ describe("GET /api/reviews/:review_id/comments", () => {
         expect(comments).toBeSortedBy("created_at", { descending: true });
       });
   });
+  //   test.only("200: reviews with no comments should respond with an empty array", () => {
+  //     return request(app)
+  //       .get("/api/reviews/1/comments")
+  //       .expect(200)
+  //       .then(({ body: { comments } }) => {
+  //         expect(comments).toEqual([]);
+  //       });
+  //   });
   describe("Error Handlers", () => {
     test("400: Bad Request, for invalid review _id", () => {
       return request(app)
         .get("/api/reviews/99999/comments")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("Not Found");
+          expect(msg).toBe("ID Does Not Exist");
         });
     });
     test("404: Not Found, for review_id does not exist", () => {
@@ -101,13 +109,5 @@ describe("GET /api/reviews/:review_id/comments", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    // test("200: empty comments do not respond with a 404", () => {
-    //   return request(app)
-    //     .get("/api/reviews/1/comments")
-    //     .expect(200)
-    //     .then(({ body: { comments } }) => {
-    //       expect(comments).toEqual([]);
-    //     });
-    // });
   });
 });

@@ -13,6 +13,7 @@ exports.fetchReviewsByReviewId = (reviewId) => {
       ;`;
 
   return db.query(queryStr, [reviewId]).then(({ rows }) => {
+    console.log(rows[0]);
     if (!rows[0]) {
       return Promise.reject({ statusCode: 404, msg: "ID Does Not Exist" });
     }
