@@ -12,21 +12,6 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
-## TASKS
-
-6. GET /api/reviews/:review_id/comments
-   Responds with:
-
-an array of comments for the given review_id of which each comment should have the following properties:
-
-- comment_id
-- votes
-- created_at
-- author
-- body
-- review_id
-  comments should be served with the most recent comments first
-
 ## Git Branching and Pull Requests
 
 You will be working on each ticket on a new **branch**.
