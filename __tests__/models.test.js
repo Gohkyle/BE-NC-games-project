@@ -13,10 +13,7 @@ afterAll(() => {
 });
 
 describe("GET /api/categories", () => {
-  test("statuscode: 200", () => {
-    return request(app).get("/api/categories").expect(200);
-  });
-  test("resolves with an categories array", () => {
+  test("200: resolves with an categories array", () => {
     return request(app)
       .get("/api/categories")
       .expect(200)
@@ -84,14 +81,14 @@ describe("GET /api/reviews/:review_id/comments", () => {
         expect(comments).toBeSortedBy("created_at", { descending: true });
       });
   });
-  //   test.only("200: reviews with no comments should respond with an empty array", () => {
-  //     return request(app)
-  //       .get("/api/reviews/1/comments")
-  //       .expect(200)
-  //       .then(({ body: { comments } }) => {
-  //         expect(comments).toEqual([]);
-  //       });
-  //   });
+  test("200: reviews with no comments should respond with an empty array", () => {
+    return request(app)
+      .get("/api/reviews/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
   describe("Error Handlers", () => {
     test("400: Bad Request, for invalid review _id", () => {
       return request(app)

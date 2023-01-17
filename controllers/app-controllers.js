@@ -1,8 +1,7 @@
 const {
   fetchCategories,
-  fetchReviewsbyReviewId,
-  fetchCommentsByReviewId,
   fetchReviewsByReviewId,
+  fetchCommentsByReviewId,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {

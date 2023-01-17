@@ -29,11 +29,6 @@ exports.fetchCommentsByReviewId = (review_id) => {
     ;`;
 
   return db.query(queryStr, [review_id]).then(({ rows, rowCount }) => {
-    if (rowCount === 0) {
-      return Promise.reject({ statusCode: 404, msg: "Not Found" });
-    }
     return rows;
   });
 };
-
-exports.fetchReview;
