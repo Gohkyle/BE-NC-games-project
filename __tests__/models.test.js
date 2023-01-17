@@ -130,7 +130,7 @@ describe("GET /api/reviews/:review_id", () => {
         .get("/api/reviews/99999")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Does Not Exist");
+          expect(msg).toBe("ID Not Found");
         });
     });
     test("400: Bad request for invalid ID data types", () => {
@@ -196,13 +196,78 @@ describe("GET /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/99999/comments")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Does Not Exist");
+          expect(msg).toBe("ID Not Found");
         });
     });
     test("404: Not Found, for review_id does not exist", () => {
       return request(app)
         .get("/api/reviews/two/comments")
         .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("POST /api/reviews/:review_id/comments", () => {
+  test("201: post request responds with the comment", () => {
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send({ username: "philippaclaire9", body: "Hello" })
+      .expect(201)
+      .then(({ body: { postedComment } }) => {
+        expect(postedComment).toBe("Hello");
+      });
+  });
+  test("200: first comment added to a review_id, get request to /api/reviews/review_id/comments resolves to have length 1", () => {
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send({ username: "philippaclaire9", body: "Hello" })
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/1/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(1);
+            expect(comments[0]).toHaveProperty("author", "philippaclaire9");
+            expect(comments[0]).toHaveProperty("body", "Hello");
+            expect(comments[0]).toHaveProperty("comment_id", 7);
+            expect(comments[0]).toHaveProperty("review_id", 1);
+          });
+      });
+  });
+  describe("Error Handlers:", () => {
+    test("400: malformed request body (23502)", () => {
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send({ creator: "philippaclaire9", form: "Hello" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("404: username not recognised (23503)", () => {
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send({ username: "EddTheDuck", body: "Quack" })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+    test("404: review_id does not exist", () => {
+      return request(app)
+        .post("/api/reviews/99999/comments")
+        .send({ username: "philippaclaire9", body: "Hello" })
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("400: invalid data type for review_id", () => {
+      return request(app)
+        .post("/api/reviews/review/comments")
+        .send({ username: "philippaclaire9", body: "Hello" })
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad Request");
         });
