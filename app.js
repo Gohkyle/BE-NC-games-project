@@ -5,15 +5,14 @@ const {
   handleCustomErrors,
   handlePsqlErrors,
   handleServerErrors,
-
 } = require("./errors/");
 const app = express();
 
 const {
   getCategories,
-
   getReviews,
   getReviewsByReviewId,
+  getCommentsByReviewId,
 } = require("./controllers/app-controllers");
 
 app.use(express.json());
@@ -23,6 +22,8 @@ app.get("/api/categories", getCategories);
 app.get("/api/reviews", getReviews);
 
 app.get("/api/reviews/:review_id", getReviewsByReviewId);
+
+app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
 
 app.use(handleCustomErrors);
 

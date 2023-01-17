@@ -13,7 +13,7 @@ afterAll(() => {
 });
 
 describe("GET /api/notARoute", () => {
-  test("resolves with a 404: Not found for route that does not exist", () => {
+  test("404: Not found for route that does not exist", () => {
     return request(app)
       .get("/api/notaroute")
       .expect(404)
@@ -44,9 +44,10 @@ describe("GET /api/categories", () => {
         });
       });
   });
+});
 
 describe("GET /api/reviews", () => {
-  test("resolves with an reviews array", () => {
+  test("200: resolves with an reviews array", () => {
     return request(app)
       .get("/api/reviews")
       .expect(200)
@@ -55,7 +56,7 @@ describe("GET /api/reviews", () => {
         expect(reviews).toHaveLength(13);
       });
   });
-  test("resolves with an array with the correct keys", () => {
+  test("200: resolves with an array with the correct keys", () => {
     return request(app)
       .get("/api/reviews")
       .expect(200)
@@ -72,7 +73,7 @@ describe("GET /api/reviews", () => {
         });
       });
   });
-  test("resolves with data sorted by date in descending order", () => {
+  test("200: resolves with data sorted by date in descending order", () => {
     return request(app)
       .get("/api/reviews")
       .expect(200)
@@ -80,7 +81,7 @@ describe("GET /api/reviews", () => {
         expect(reviews).toBeSortedBy("created_at", { descending: true });
       });
   });
-  test("resolves with a comment_count key with the total count of all the comments for that review_id", () => {
+  test("200: resolves with a comment_count key with the total count of all the comments for that review_id", () => {
     return request(app)
       .get("/api/reviews")
       .expect(200)
@@ -101,7 +102,7 @@ describe("GET /api/reviews", () => {
 });
 
 describe("GET /api/reviews/:review_id", () => {
-  test("resolves with a review object with all the correct keys and values", () => {
+  test("200: resolves with a review object with all the correct keys and values", () => {
     return request(app)
       .get("/api/reviews/2")
       .expect(200)
@@ -124,7 +125,7 @@ describe("GET /api/reviews/:review_id", () => {
       });
   });
   describe("ErrorHandlers:", () => {
-    test("sends back 404 error for IDs that do not exist", () => {
+    test("404: Not Found for IDs that do not exist", () => {
       return request(app)
         .get("/api/reviews/99999")
         .expect(404)
@@ -132,7 +133,7 @@ describe("GET /api/reviews/:review_id", () => {
           expect(msg).toBe("ID Does Not Exist");
         });
     });
-    test("sends back a 400 request for invalid ID data types", () => {
+    test("400: Bad request for invalid ID data types", () => {
       return request(app)
         .get("/api/reviews/nine")
         .expect(400)
@@ -143,7 +144,6 @@ describe("GET /api/reviews/:review_id", () => {
   });
 });
 
-
 describe("GET /api/reviews/:review_id/comments", () => {
   test("200: resolves with an array of comments for the given review_id", () => {
     return request(app)
@@ -151,7 +151,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
       .expect(200)
       .then(({ body: { comments } }) => {
         expect(comments).toBeInstanceOf(Array);
-        // split these up?
+
         expect(comments).toHaveLength(3);
 
         comments.forEach((comment) => {

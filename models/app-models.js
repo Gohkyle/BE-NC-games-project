@@ -42,8 +42,7 @@ exports.fetchCommentsByReviewId = (review_id) => {
         ORDER BY created_at DESC
     ;`;
 
-  return db.query(queryStr, [review_id]).then(({ rows, rowCount }) => {
+  return db.query(queryStr, [review_id]).then(({ rows }) => {
     return rows;
   });
 };
-

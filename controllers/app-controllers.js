@@ -33,5 +33,7 @@ exports.getCommentsByReviewId = (request, response, next) => {
       return fetchCommentsByReviewId(review_id);
     })
     .then((comments) => {
-      console.log(comments);
       response.status(200).send({ comments });
+    })
+    .catch(next);
+};
