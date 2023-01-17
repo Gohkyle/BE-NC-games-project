@@ -1,5 +1,19 @@
-exports.handleRouteErrors = (error, request, response, next) => {
-  response.status(404).send("Route Does Not Exist");
+exports.handleRouteErrors = (request, response, next) => {
+  response.status(404).send({ msg: "Route Does Not Exist" });
+};
+
+exports.handleCustomErrors = (error, request, response, next) => {
+  if (error.statusCode && error.msg) {
+    response.status(error.statusCode).send({ msg: error.msg });
+  }
+  next(error);
+};
+
+exports.handlePsqlErrors = (error, request, response, next) => {
+  if (error.code === "22P02") {
+    response.status(400).send({ msg: "Bad Request" });
+  }
+
   next(error);
 };
 

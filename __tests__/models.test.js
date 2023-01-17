@@ -14,7 +14,13 @@ afterAll(() => {
 
 describe("GET /api/notARoute", () => {
   test("resolves with a 404: Not found for route that does not exist", () => {
-    return request(app).get("/api/notaroute").expect(404);
+    return request(app)
+      .get("/api/notaroute")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Route Does Not Exist");
+      });
+
   });
 });
 
@@ -98,3 +104,46 @@ describe("GET /api/reviews", () => {
       });
   });
 });
+describe("GET /api/reviews/:review_id", () => {
+  test("resolves with a review object with all the correct keys and values", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("review_id", 2);
+        expect(review).toHaveProperty("title", "Jenga");
+        expect(review).toHaveProperty(
+          "review_body",
+          "Fiddly fun for all the family"
+        );
+        expect(review).toHaveProperty("designer", "Leslie Scott");
+        expect(review).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
+        );
+        expect(review).toHaveProperty("votes", 5);
+        expect(review).toHaveProperty("category", "dexterity");
+        expect(review).toHaveProperty("owner", "philippaclaire9");
+        expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
+      });
+  });
+  describe("ErrorHandlers:", () => {
+    test("sends back 404 error for IDs that do not exist", () => {
+      return request(app)
+        .get("/api/reviews/99999")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Does Not Exist");
+        });
+    });
+    test("sends back a 400 request for invalid ID data types", () => {
+      return request(app)
+        .get("/api/reviews/nine")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+

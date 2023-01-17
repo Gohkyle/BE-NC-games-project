@@ -12,17 +12,6 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
-## TASK
-
-Responds with:
-
-- an array of category objects, each of which should have the following properties:
-  - `slug`
-  - `description`
-
-As this is the first endpoint you will need to set up your testing suite.
-
-Errors handled.
 
 ## Git Branching and Pull Requests
 

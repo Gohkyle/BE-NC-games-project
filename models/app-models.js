@@ -20,3 +20,18 @@ exports.fetchReviews = () => {
     return rows;
   });
 };
+
+exports.fetchReviewsByReviewId = (reviewId) => {
+  const queryStr = `
+    SELECT * FROM reviews
+    WHERE review_id = $1
+    ;`;
+
+  return db.query(queryStr, [reviewId]).then(({ rows }) => {
+    if (!rows[0]) {
+      return Promise.reject({ statusCode: 404, msg: "ID Does Not Exist" });
+    }
+    return rows[0];
+  });
+};
+
