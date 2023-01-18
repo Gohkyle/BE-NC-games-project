@@ -210,8 +210,6 @@ describe("GET /api/reviews/:review_id/comments", () => {
   });
 });
 
-// 200: returns the updated review
-// 200: updates the database with the new value
 // error handling: 400 incorrect type
 // error handling: 404 malformed body
 // error handling: 404, review not found
@@ -242,4 +240,25 @@ describe.only("PATCH /api/reviews/:review_id", () => {
         expect(updatedReview).toHaveProperty("votes", 6);
       });
   });
+  test("200: database is updated", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("review_id", 2);
+        expect(review).toHaveProperty("title", "Jenga");
+        expect(review).toHaveProperty("designer", "Leslie Scott");
+        expect(review).toHaveProperty("owner", "philippaclaire9");
+        expect(review).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
+        );
+        expect(review).toHaveProperty(
+          "review_body",
+          "Fiddly fun for all the family"
+        );
+        expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
+      });
+  });
+  describe("Error Handlers", () => {});
 });
