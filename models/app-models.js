@@ -47,7 +47,7 @@ exports.fetchCommentsByReviewId = (review_id) => {
   });
 };
 
-exports.updateReview = (review_id, inc_votes) => {
+exports.updateReviewVote = (review_id, inc_votes) => {
   const queryStr = `
   UPDATE reviews
   SET votes = votes + $1
@@ -55,7 +55,9 @@ exports.updateReview = (review_id, inc_votes) => {
   RETURNING *;
   `;
   return db.query(queryStr, [inc_votes, review_id]).then(({ rows }) => {
-    console.log(rows);
+    if (!rows[0]) {
+      return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
+    }
     return rows[0];
   });
 };
