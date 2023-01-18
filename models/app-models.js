@@ -7,16 +7,28 @@ exports.fetchCategories = () => {
   });
 };
 
-exports.fetchReviews = () => {
-  const queryStr = `
+exports.fetchReviews = (category) => {
+  let queryValues = [];
+  let queryStr = `
   SELECT reviews.*, COUNT(comments.review_id) AS comment_count 
-  FROM reviews 
+  FROM reviews
   LEFT JOIN comments 
   ON comments.review_id = reviews.review_id 
+  `;
+
+  if (category) {
+    queryStr += `WHERE category = $1 `;
+    queryValues.push(category);
+  }
+
+  queryStr += `
+  
   GROUP BY reviews.review_id
   ORDER BY reviews.created_at DESC;
   `;
-  return db.query(queryStr).then(({ rows }) => {
+
+  console.log(queryStr);
+  return db.query(queryStr, queryValues).then(({ rows }) => {
     return rows;
   });
 };

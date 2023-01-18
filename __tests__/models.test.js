@@ -46,7 +46,7 @@ describe("GET /api/categories", () => {
   });
 });
 
-describe("GET /api/reviews", () => {
+describe.only("GET /api/reviews", () => {
   test("200: resolves with an reviews array", () => {
     return request(app)
       .get("/api/reviews")
@@ -98,6 +98,34 @@ describe("GET /api/reviews", () => {
 
         expect(shouldBe0.comment_count).toBe("0");
       });
+  });
+  describe("?query", () => {
+    describe("category", () => {
+      test("200: features a category query, that selects the reviews by the specified category", () => {
+        return request(app)
+          .get("/api/reviews?category=social deduction")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(11);
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("category", "social deduction");
+            });
+          });
+      });
+      test("200: endpoint responds with all the reviews, when query is omitted", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(13);
+          });
+      });
+      describe("Error Handling:", () => {
+        // test("400: category doesn't exist", () => {});
+        // test("400: category is not the right data type", () => {});
+        // test("200: category exists but has no reviews", () => {});
+      });
+    });
   });
 });
 
@@ -300,3 +328,5 @@ describe("POST /api/reviews/:review_id/comments", () => {
     });
   });
 });
+
+//my GET /api/review?query tests are in the GET/api/review block
