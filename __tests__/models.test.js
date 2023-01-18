@@ -210,16 +210,28 @@ describe("GET /api/reviews/:review_id/comments", () => {
   });
 });
 
-//resolves with an array
-//resolves with the correct keys
-// describe("GET /api/users", () => {
-//   test("200: resolves with a users array", () => {
-//     return request(app)
-//       .get("/api/users")
-//       .expect(200)
-//       .then(({ body: { users } }) => {
-//         expect(users).toBeAnInstanceOf(Array);
-//         expect(users).toHaveLength(4);
-//       });
-//   });
-// });
+// resolves with an array
+// resolves with the correct keys
+describe("GET /api/users", () => {
+  test("200: resolves with a users array", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users).toBeInstanceOf(Array);
+        expect(users).toHaveLength(4);
+      });
+  });
+  test("200: resolves with the correct keys", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        users.forEach((user) => {
+          expect(user).toHaveProperty("username");
+          expect(user).toHaveProperty("name");
+          expect(user).toHaveProperty("avatar_url");
+        });
+      });
+  });
+});

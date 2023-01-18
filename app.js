@@ -13,6 +13,7 @@ const {
   getReviews,
   getReviewsByReviewId,
   getCommentsByReviewId,
+  getUsers,
 } = require("./controllers/app-controllers");
 
 app.use(express.json());
@@ -25,7 +26,7 @@ app.get("/api/reviews/:review_id", getReviewsByReviewId);
 
 app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
 
-// app.get('/api/r')
+app.get("/api/users", getUsers);
 
 app.use(handleCustomErrors);
 

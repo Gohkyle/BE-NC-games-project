@@ -3,6 +3,7 @@ const {
   fetchReviewsByReviewId,
   fetchCommentsByReviewId,
   fetchReviews,
+  fetchUsers,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -36,4 +37,10 @@ exports.getCommentsByReviewId = (request, response, next) => {
       response.status(200).send({ comments });
     })
     .catch(next);
+};
+
+exports.getUsers = (request, response, next) => {
+  fetchUsers().then((users) => {
+    response.status(200).send({ users });
+  });
 };
