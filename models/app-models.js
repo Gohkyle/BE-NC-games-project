@@ -88,3 +88,13 @@ exports.updateReviewVote = (review_id, updates) => {
       });
   } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
+
+exports.fetchUsers = () => {
+  const queryStr = `
+    SELECT * FROM users
+  `;
+
+  return db.query(queryStr).then(({ rows }) => {
+    return rows;
+  });
+};

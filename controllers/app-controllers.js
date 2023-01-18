@@ -5,6 +5,8 @@ const {
   fetchReviews,
   addCommentOnReviewId,
   updateReviewVote,
+   fetchUsers,
+
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -61,4 +63,10 @@ exports.patchReview = (request, response, next) => {
       response.status(200).send({ updatedReview });
     })
     .catch(next);
+};
+
+exports.getUsers = (request, response, next) => {
+  fetchUsers().then((users) => {
+    response.status(200).send({ users });
+  });
 };
