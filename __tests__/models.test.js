@@ -243,7 +243,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
   });
   describe("Error Handlers:", () => {
     test("400: malformed request body (23502)", () => {
-      const commentBody = { creator: "philippaclaire9", form: "Hello" };
+      const commentBody = { username: "philippaclaire9" };
 
       return request(app)
         .post("/api/reviews/1/comments")
@@ -253,6 +253,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
           expect(msg).toBe("Bad Request");
         });
     });
+    //should I delete this test, it was necessary before I tested for only takes username and body, but now it never needs the psql error code 23502
     test("404: username not recognised (23503)", () => {
       commentBody = { username: "EddTheDuck", body: "Quack" };
 
@@ -278,6 +279,20 @@ describe("POST /api/reviews/:review_id/comments", () => {
       return request(app)
         .post("/api/reviews/review/comments")
         .send(commentBody)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only accepts username and body for the request body", () => {
+      const commentBody = {
+        username: "philippaclaire9",
+        body: "Hello",
+        vote: 16,
+      };
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(400)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad Request");
         });

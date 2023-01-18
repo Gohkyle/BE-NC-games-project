@@ -28,11 +28,11 @@ app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
 
 app.post("/api/reviews/:review_id/comments", postCommentOnReviewId);
 
+app.use(handleRouteErrors);
+
 app.use(handleCustomErrors);
 
 app.use(handlePsqlErrors);
-
-app.use(handleRouteErrors);
 
 app.use(handleServerErrors);
 

@@ -47,15 +47,19 @@ exports.fetchCommentsByReviewId = (review_id) => {
   });
 };
 
-exports.addCommentOnReviewId = (review_id, username, comment) => {
-  const queryStr = `
-  INSERT INTO comments
-  (author, body, review_id)
-  VALUES
-  ($1, $2, $3)
-  RETURNING *;
-  `;
-  return db.query(queryStr, [username, comment, review_id]).then(({ rows }) => {
-    return rows[0].body;
-  });
+exports.addCommentOnReviewId = (review_id, updates) => {
+  if (updates.username && updates.body && Object.keys(updates).length === 2) {
+    const queryStr = `
+    INSERT INTO comments
+    (author, body, review_id)
+    VALUES
+    ($1, $2, $3)
+    RETURNING *;
+    `;
+    return db
+      .query(queryStr, [updates.username, updates.body, review_id])
+      .then(({ rows }) => {
+        return rows[0].body;
+      });
+  } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
