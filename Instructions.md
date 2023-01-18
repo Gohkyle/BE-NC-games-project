@@ -12,6 +12,20 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
+## Tasks
+
+Request body accepts:
+
+- an object with the following properties:
+  - `username`
+  - `body`
+
+Responds with:
+
+- the posted comment
+
+Note: the status code should be 201 which signifies that something was created
+
 ## Git Branching and Pull Requests
 
 You will be working on each ticket on a new **branch**.
