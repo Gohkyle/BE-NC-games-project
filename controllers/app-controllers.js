@@ -40,9 +40,9 @@ exports.getCommentsByReviewId = (request, response, next) => {
 };
 
 exports.patchReview = (request, response, next) => {
-  const { inc_votes } = request.body;
+  const updates = request.body;
   const { review_id } = request.params;
-  updateReviewVote(review_id, inc_votes)
+  updateReviewVote(review_id, updates)
     .then((updatedReview) => {
       response.status(200).send({ updatedReview });
     })

@@ -47,17 +47,23 @@ exports.fetchCommentsByReviewId = (review_id) => {
   });
 };
 
-exports.updateReviewVote = (review_id, inc_votes) => {
-  const queryStr = `
-  UPDATE reviews
-  SET votes = votes + $1
-  WHERE review_id = $2
-  RETURNING *;
-  `;
-  return db.query(queryStr, [inc_votes, review_id]).then(({ rows }) => {
-    if (!rows[0]) {
-      return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
-    }
-    return rows[0];
-  });
+exports.updateReviewVote = (review_id, updates) => {
+  console.log(updates, "updates");
+  if (Object.keys(updates).length === 1 && updates.inc_votes) {
+    const queryStr = `
+      UPDATE reviews
+      SET votes = votes + $1
+      WHERE review_id = $2
+      RETURNING *;
+    `;
+
+    return db
+      .query(queryStr, [updates.inc_votes, review_id])
+      .then(({ rows }) => {
+        if (!rows[0]) {
+          return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
+        }
+        return rows[0];
+      });
+  } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };

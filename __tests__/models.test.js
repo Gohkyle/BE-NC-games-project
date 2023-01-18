@@ -264,13 +264,24 @@ describe("PATCH /api/reviews/:review_id", () => {
     test("400: malformed body", () => {
       return request(app)
         .patch("/api/reviews/2")
-        .send({})
+        .send({ inc_votes: "null" })
         .expect(400)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request, Not Null Constraint");
+          expect(msg).toBe("Bad Request");
         });
     });
     //is using psql error 23502 sufficient to test for this?
+
+    test("400: only have inc_votes", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: 1, owner: "it's me now" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    // when I do this test, the new code I write makes the 23502 psql error handler redundant, if there a situation where we would be able to put this in, or should the code written should be good enought to never leave a null data value?
     test("404: review not found", () => {
       return request(app)
         .patch("/api/reviews/9999")
