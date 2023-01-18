@@ -4,6 +4,9 @@ const {
   fetchCommentsByReviewId,
   fetchReviews,
   addCommentOnReviewId,
+  updateReviewVote,
+   fetchUsers,
+
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -52,4 +55,20 @@ exports.postCommentOnReviewId = (request, response, next) => {
       response.status(201).send({ postedComment });
     })
     .catch(next);
+};
+
+exports.patchReview = (request, response, next) => {
+  const updates = request.body;
+  const { review_id } = request.params;
+  updateReviewVote(review_id, updates)
+    .then((updatedReview) => {
+      response.status(200).send({ updatedReview });
+    })
+    .catch(next);
+};
+
+exports.getUsers = (request, response, next) => {
+  fetchUsers().then((users) => {
+    response.status(200).send({ users });
+  });
 };
