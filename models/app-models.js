@@ -47,8 +47,12 @@ exports.fetchCommentsByReviewId = (review_id) => {
   });
 };
 
-exports.addCommentOnReviewId = (review_id, updates) => {
-  if (updates.username && updates.body && Object.keys(updates).length === 2) {
+exports.addCommentOnReviewId = (review_id, newComment) => {
+  if (
+    newComment.username &&
+    newComment.body &&
+    Object.keys(newComment).length === 2
+  ) {
     const queryStr = `
     INSERT INTO comments
     (author, body, review_id)
@@ -57,7 +61,7 @@ exports.addCommentOnReviewId = (review_id, updates) => {
     RETURNING *;
     `;
     return db
-      .query(queryStr, [updates.username, updates.body, review_id])
+      .query(queryStr, [newComment.username, newComment.body, review_id])
       .then(({ rows }) => {
         return rows[0].body;
       });

@@ -41,10 +41,10 @@ exports.getCommentsByReviewId = (request, response, next) => {
 
 exports.postCommentOnReviewId = (request, response, next) => {
   const { review_id } = request.params;
-  const updates = request.body;
+  const newComment = request.body;
   fetchReviewsByReviewId(review_id)
     .then(() => {
-      return addCommentOnReviewId(review_id, updates);
+      return addCommentOnReviewId(review_id, newComment);
     })
     .then((postedComment) => {
       response.status(201).send({ postedComment });

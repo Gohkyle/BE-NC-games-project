@@ -222,7 +222,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
         expect(postedComment).toBe("Hello");
       });
   });
-  test("200: first comment added to a review_id, get request to /api/reviews/review_id/comments resolves to have length 1", () => {
+  test("200: returns the expect comment object", () => {
     const commentBody = { username: "philippaclaire9", body: "Hello" };
 
     return request(app)
@@ -253,7 +253,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    //should I delete this test, it was necessary before I tested for only takes username and body, but now it never needs the psql error code 23502
+    //Test passes via non 23502 handling
     test("404: username not recognised (23503)", () => {
       commentBody = { username: "EddTheDuck", body: "Quack" };
 
