@@ -5,8 +5,7 @@ const {
   fetchReviews,
   addCommentOnReviewId,
   updateReviewVote,
-   fetchUsers,
-
+  fetchUsers,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -16,11 +15,12 @@ exports.getCategories = (request, response, next) => {
 };
 
 exports.getReviews = (request, response, next) => {
-  const { category } = request.query;
-  console.log(request.query);
-  fetchReviews(category).then((reviews) => {
-    response.status(200).send({ reviews });
-  });
+  const { category, sort_by, order_by } = request.query;
+  fetchReviews(category, sort_by, order_by)
+    .then((reviews) => {
+      response.status(200).send({ reviews });
+    })
+    .catch(next);
 };
 
 exports.getReviewsByReviewId = (request, response, next) => {

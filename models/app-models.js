@@ -7,8 +7,42 @@ exports.fetchCategories = () => {
   });
 };
 
-exports.fetchReviews = (category) => {
+exports.fetchReviews = (
+  category,
+  sort_by = "created_at",
+  order_by = "DESC"
+) => {
+  const acceptedCategories = [
+    "euro game",
+    "social deduction",
+    "dexterity",
+    "children's games",
+  ];
+  const acceptedSort_by = [
+    "title",
+    "designer",
+    "owner",
+    "category",
+    "created_at",
+    "votes",
+  ];
+
   let queryValues = [];
+
+  if (!acceptedSort_by.includes(sort_by)) {
+    return Promise.reject({
+      statusCode: 400,
+      msg: "Bad Request: Column does not exist!",
+    });
+  }
+
+  if (!["ASC", "DESC"].includes(order_by.toUpperCase())) {
+    return Promise.reject({
+      statusCode: 400,
+      msg: "Bad Request: ASC or DESC ONLY",
+    });
+  }
+
   let queryStr = `
   SELECT reviews.*, COUNT(comments.review_id) AS comment_count 
   FROM reviews
@@ -17,17 +51,21 @@ exports.fetchReviews = (category) => {
   `;
 
   if (category) {
+    if (!acceptedCategories.includes(category)) {
+      return Promise.reject({
+        statusCode: 400,
+        msg: "Bad Request: Category does not exist!",
+      });
+    }
     queryStr += `WHERE category = $1 `;
     queryValues.push(category);
   }
 
   queryStr += `
-  
   GROUP BY reviews.review_id
-  ORDER BY reviews.created_at DESC;
+  ORDER BY reviews.${sort_by} ${order_by};
   `;
 
-  console.log(queryStr);
   return db.query(queryStr, queryValues).then(({ rows }) => {
     return rows;
   });
@@ -81,7 +119,6 @@ exports.addCommentOnReviewId = (review_id, newComment) => {
 };
 
 exports.updateReviewVote = (review_id, updates) => {
-  console.log(updates, "updates");
   if (Object.keys(updates).length === 1 && updates.inc_votes) {
     const queryStr = `
       UPDATE reviews
