@@ -29,7 +29,7 @@ exports.fetchReviewsByReviewId = (reviewId) => {
 
   return db.query(queryStr, [reviewId]).then(({ rows }) => {
     if (!rows[0]) {
-      return Promise.reject({ statusCode: 404, msg: "ID Does Not Exist" });
+      return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
     }
     return rows[0];
   });
@@ -45,6 +45,27 @@ exports.fetchCommentsByReviewId = (review_id) => {
   return db.query(queryStr, [review_id]).then(({ rows }) => {
     return rows;
   });
+};
+
+exports.addCommentOnReviewId = (review_id, newComment) => {
+  if (
+    newComment.username &&
+    newComment.body &&
+    Object.keys(newComment).length === 2
+  ) {
+    const queryStr = `
+    INSERT INTO comments
+    (author, body, review_id)
+    VALUES
+    ($1, $2, $3)
+    RETURNING *;
+    `;
+    return db
+      .query(queryStr, [newComment.username, newComment.body, review_id])
+      .then(({ rows }) => {
+        return rows[0].body;
+      });
+  } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
 
 exports.updateReviewVote = (review_id, updates) => {

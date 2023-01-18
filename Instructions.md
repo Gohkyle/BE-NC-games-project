@@ -12,6 +12,15 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 
 **Please ensure you work through the tickets in numerical order.**
 
+## Tasks
+
+FEATURE REQUEST
+The end point should also accept the following queries:
+
+category, which selects the reviews by the category value specified in the query. If the query is omitted the endpoint should respond with all reviews.
+sort_by, which sorts the articles by any valid column (defaults to date)
+order, which can be set to asc or desc for ascending or descending (defaults to descending)
+
 ## Git Branching and Pull Requests
 
 You will be working on each ticket on a new **branch**.
