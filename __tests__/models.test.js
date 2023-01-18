@@ -361,7 +361,7 @@ describe("PATCH /api/reviews/:review_id", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    //is using psql error 23502 sufficient to test for this?
+    //test passes through error handling on test only have inc_votes
 
     test("400: only have inc_votes", () => {
       return request(app)
@@ -372,7 +372,6 @@ describe("PATCH /api/reviews/:review_id", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    // when I do this test, the new code I write makes the 23502 psql error handler redundant, if there a situation where we would be able to put this in, or should the code written should be good enought to never leave a null data value?
     test("404: review not found", () => {
       return request(app)
         .patch("/api/reviews/9999")
