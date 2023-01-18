@@ -1,4 +1,5 @@
 const express = require("express");
+const app = express();
 
 const {
   handleRouteErrors,
@@ -6,14 +7,16 @@ const {
   handlePsqlErrors,
   handleServerErrors,
 } = require("./errors/");
-const app = express();
 
 const {
   getCategories,
   getReviews,
   getReviewsByReviewId,
   getCommentsByReviewId,
+  postCommentOnReviewId,
+  patchReview,
   getUsers,
+
 } = require("./controllers/app-controllers");
 
 app.use(express.json());
@@ -26,13 +29,17 @@ app.get("/api/reviews/:review_id", getReviewsByReviewId);
 
 app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
 
+app.post("/api/reviews/:review_id/comments", postCommentOnReviewId);
+
 app.get("/api/users", getUsers);
+
+app.patch("/api/reviews/:review_id", patchReview);
+
+app.use(handleRouteErrors);
 
 app.use(handleCustomErrors);
 
 app.use(handlePsqlErrors);
-
-app.use(handleRouteErrors);
 
 app.use(handleServerErrors);
 

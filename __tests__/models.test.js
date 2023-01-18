@@ -130,7 +130,7 @@ describe("GET /api/reviews/:review_id", () => {
         .get("/api/reviews/99999")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Does Not Exist");
+          expect(msg).toBe("ID Not Found");
         });
     });
     test("400: Bad request for invalid ID data types", () => {
@@ -196,7 +196,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/99999/comments")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Does Not Exist");
+          expect(msg).toBe("ID Not Found");
         });
     });
     test("404: Not Found, for review_id does not exist", () => {
@@ -210,8 +210,190 @@ describe("GET /api/reviews/:review_id/comments", () => {
   });
 });
 
-// resolves with an array
-// resolves with the correct keys
+describe("POST /api/reviews/:review_id/comments", () => {
+  test("201: post request responds with the comment", () => {
+    const commentBody = { username: "philippaclaire9", body: "Hello" };
+
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send(commentBody)
+      .expect(201)
+      .then(({ body: { postedComment } }) => {
+        expect(postedComment).toBe("Hello");
+      });
+  });
+  test("200: returns the expect comment object", () => {
+    const commentBody = { username: "philippaclaire9", body: "Hello" };
+
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send(commentBody)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/1/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(1);
+            expect(comments[0]).toHaveProperty("author", "philippaclaire9");
+            expect(comments[0]).toHaveProperty("body", "Hello");
+            expect(comments[0]).toHaveProperty("comment_id", 7);
+            expect(comments[0]).toHaveProperty("review_id", 1);
+            expect(comments[0]).toHaveProperty("created_at");
+          });
+      });
+  });
+  describe("Error Handlers:", () => {
+    test("400: malformed request body (23502)", () => {
+      const commentBody = { username: "philippaclaire9" };
+
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    //Test passes via non 23502 handling
+    test("404: username not recognised (23503)", () => {
+      commentBody = { username: "EddTheDuck", body: "Quack" };
+
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+    test("404: review_id does not exist", () => {
+      const commentBody = { username: "philippaclaire9", body: "Hello" };
+      return request(app)
+        .post("/api/reviews/99999/comments")
+        .send(commentBody)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("400: invalid data type for review_id", () => {
+      const commentBody = { username: "philippaclaire9", body: "Hello" };
+      return request(app)
+        .post("/api/reviews/review/comments")
+        .send(commentBody)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only accepts username and body for the request body", () => {
+      const commentBody = {
+        username: "philippaclaire9",
+        body: "Hello",
+        vote: 16,
+      };
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("PATCH /api/reviews/:review_id", () => {
+  test("200: returns the updated review", () => {
+    return request(app)
+      .patch("/api/reviews/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body: { updatedReview } }) => {
+        expect(updatedReview).toHaveProperty("review_id", 2);
+        expect(updatedReview).toHaveProperty("title", "Jenga");
+        expect(updatedReview).toHaveProperty("designer", "Leslie Scott");
+        expect(updatedReview).toHaveProperty("owner", "philippaclaire9");
+        expect(updatedReview).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
+        );
+        expect(updatedReview).toHaveProperty(
+          "review_body",
+          "Fiddly fun for all the family"
+        );
+        expect(updatedReview).toHaveProperty(
+          "created_at",
+          "2021-01-18T10:01:41.251Z"
+        );
+        expect(updatedReview).toHaveProperty("votes", 6);
+      });
+  });
+  test("200: database is updated", () => {
+    return request(app)
+      .patch("/api/reviews/2")
+      .send({ inc_votes: -5 })
+      .expect(200)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/2")
+          .expect(200)
+          .then(({ body: { review } }) => {
+            expect(review).toHaveProperty("review_id", 2);
+            expect(review).toHaveProperty("votes", 0);
+          });
+      });
+  });
+  describe("Error Handlers", () => {
+    test("400: incorrect data type, vote increase is not a number", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: "five" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: malformed body", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: "null" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    //is using psql error 23502 sufficient to test for this?
+
+    test("400: only have inc_votes", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: 1, owner: "it's me now" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    // when I do this test, the new code I write makes the 23502 psql error handler redundant, if there a situation where we would be able to put this in, or should the code written should be good enought to never leave a null data value?
+    test("404: review not found", () => {
+      return request(app)
+        .patch("/api/reviews/9999")
+        .send({ inc_votes: 2 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("400: review not valid", () => {
+      return request(app)
+        .patch("/api/reviews/five")
+        .send({ inc_votes: 2 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
 describe("GET /api/users", () => {
   test("200: resolves with a users array", () => {
     return request(app)
