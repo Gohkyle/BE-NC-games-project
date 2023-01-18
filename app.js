@@ -25,6 +25,8 @@ app.get("/api/reviews/:review_id", getReviewsByReviewId);
 
 app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
 
+// app.get('/api/r')
+
 app.use(handleCustomErrors);
 
 app.use(handlePsqlErrors);

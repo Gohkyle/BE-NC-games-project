@@ -24,7 +24,7 @@ describe("GET /api/notARoute", () => {
 });
 
 describe("GET /api/categories", () => {
-  test("200: resolves with an categories array", () => {
+  test("200: resolves with a categories array", () => {
     return request(app)
       .get("/api/categories")
       .expect(200)
@@ -209,3 +209,17 @@ describe("GET /api/reviews/:review_id/comments", () => {
     });
   });
 });
+
+//resolves with an array
+//resolves with the correct keys
+// describe("GET /api/users", () => {
+//   test("200: resolves with a users array", () => {
+//     return request(app)
+//       .get("/api/users")
+//       .expect(200)
+//       .then(({ body: { users } }) => {
+//         expect(users).toBeAnInstanceOf(Array);
+//         expect(users).toHaveLength(4);
+//       });
+//   });
+// });
