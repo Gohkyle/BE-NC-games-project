@@ -238,6 +238,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
             expect(comments[0]).toHaveProperty("body", "Hello");
             expect(comments[0]).toHaveProperty("comment_id", 7);
             expect(comments[0]).toHaveProperty("review_id", 1);
+            expect(comments[0]).toHaveProperty("created_at");
           });
       });
   });
