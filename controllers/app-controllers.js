@@ -83,7 +83,6 @@ exports.getUsers = (request, response, next) => {
 
 exports.deleteComment = (request, response, next) => {
   const { comment_id } = request.params;
-  console.log(comment_id);
   removeComment(comment_id)
     .then((deletedComment) => {
       response.status(204).send({ deletedComment });
