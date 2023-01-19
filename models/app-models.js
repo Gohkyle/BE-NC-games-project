@@ -53,8 +53,8 @@ exports.fetchReviews = (
   if (category) {
     if (!acceptedCategories.includes(category)) {
       return Promise.reject({
-        statusCode: 400,
-        msg: "Bad Request: Category does not exist!",
+        statusCode: 404,
+        msg: "Category Not Found",
       });
     }
     queryStr += `WHERE category = $1 `;

@@ -112,22 +112,13 @@ describe("GET /api/reviews", () => {
             });
           });
       });
-      test("200: endpoint responds with all the reviews, when query is omitted", () => {
-        return request(app)
-          .get("/api/reviews")
-          .expect(200)
-          .then(({ body: { reviews } }) => {
-            expect(reviews).toHaveLength(13);
-          });
-      });
-      //is this necessary, as it is done in the original get request right?
       describe("Error Handling:", () => {
-        test("400: category doesn't exist", () => {
+        test("404: category doesn't exist", () => {
           return request(app)
             .get("/api/reviews?category=card game")
-            .expect(400)
+            .expect(404)
             .then(({ body: { msg } }) => {
-              expect(msg).toBe("Bad Request: Category does not exist!");
+              expect(msg).toBe("Category Not Found");
             });
         });
         test("200: category exists but has no reviews", () => {
@@ -221,6 +212,13 @@ describe("GET /api/reviews/:review_id", () => {
         expect(review).toHaveProperty("category", "dexterity");
         expect(review).toHaveProperty("owner", "philippaclaire9");
         expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
+      });
+  });
+  test("200: also resolves with a comment_count key, with correct value", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then(({ body: { review } }) => {
         expect(review).toHaveProperty("comment_count", 3);
       });
   });
