@@ -75,8 +75,8 @@ exports.deleteComment = (request, response, next) => {
   const { comment_id } = request.params;
   console.log(comment_id);
   removeComment(comment_id)
-    .then(() => {
-      response.status(204).send();
+    .then((deletedComment) => {
+      response.status(204).send({ deletedComment });
     })
     .catch(next);
 };
