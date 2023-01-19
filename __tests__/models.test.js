@@ -90,19 +90,125 @@ describe("GET /api/reviews", () => {
           return review.review_id === 2;
         });
 
-        expect(shouldBe3.comment_count).toBe("3");
+        expect(shouldBe3.comment_count).toBe(3);
 
         const shouldBe0 = reviews.find((review) => {
           return review.review_id === 1;
         });
 
-        expect(shouldBe0.comment_count).toBe("0");
+        expect(shouldBe0.comment_count).toBe(0);
       });
+  });
+  describe("?query", () => {
+    describe("category", () => {
+      test("200: features a category query, that selects the reviews by the specified category", () => {
+        return request(app)
+          .get("/api/reviews?category=social deduction")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(11);
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("category", "social deduction");
+            });
+          });
+      });
+      describe("Error Handling:", () => {
+        test("404: category doesn't exist", () => {
+          return request(app)
+            .get("/api/reviews?category=card game")
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Category Not Found");
+            });
+        });
+        test("200: category exists but has no reviews", () => {
+          return request(app)
+            .get("/api/reviews?category=children's games")
+            .expect(200)
+            .then(({ body: { reviews } }) => {
+              expect(reviews).toEqual([]);
+            });
+        });
+        test("200: no 404 for categories that are newly added", () => {
+          const queryStr = `
+            INSERT INTO categories
+            (slug, description)
+            VALUES 
+            ('mind', 'think about it')
+            RETURNING *
+          ;`;
+          return db.query(queryStr).then(() => {
+            return request(app)
+              .get("/api/reviews?category=mind")
+              .expect(200)
+              .then(({ body: { reviews } }) => {
+                expect(reviews).toEqual([]);
+              });
+          });
+        });
+      });
+    });
+    describe("sort_by", () => {
+      test("200: reviews can be sorted by different columns via query", () => {
+        return request(app)
+          .get("/api/reviews?sort_by=title")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("title", { descending: true });
+          });
+      });
+      describe("Error Handling:", () => {
+        test("400: only accepts set column names", () => {
+          return request(app)
+            .get("/api/reviews?sort_by=date")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: Column does not exist!");
+            });
+        });
+      });
+    });
+    describe("order_by", () => {
+      test("200: reviews are able to be sorted in ascending/descending", () => {
+        return request(app)
+          .get("/api/reviews?order_by=asc")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("created_at");
+          });
+      });
+      describe("Error Handling:", () => {
+        test("400: only takes ASC or DESC", () => {
+          return request(app)
+            .get("/api/reviews?order_by=true")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: ASC or DESC ONLY");
+            });
+        });
+      });
+    });
+    describe("multiple queries", () => {
+      test("able to take multiple queries", () => {
+        return request(app)
+          .get(
+            "/api/reviews?category=social deduction&order_by=asc&sort_by=title"
+          )
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("title");
+            expect(reviews).toHaveLength(11);
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("category", "social deduction");
+            });
+          });
+      });
+    });
   });
 });
 
 describe("GET /api/reviews/:review_id", () => {
-  test("200: resolves with a review object with all the correct keys and values", () => {
+  test("200: resolves with a review object with all the correct keys and values, including comment_count", () => {
     return request(app)
       .get("/api/reviews/2")
       .expect(200)
@@ -122,6 +228,14 @@ describe("GET /api/reviews/:review_id", () => {
         expect(review).toHaveProperty("category", "dexterity");
         expect(review).toHaveProperty("owner", "philippaclaire9");
         expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
+      });
+  });
+  test("200: also resolves with a comment_count key, with correct value", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("comment_count", 3);
       });
   });
   describe("ErrorHandlers:", () => {
@@ -361,8 +475,7 @@ describe("PATCH /api/reviews/:review_id", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    //test passes through error handling on test only have inc_votes
-
+    //test passes through error handling from line 396
     test("400: only have inc_votes", () => {
       return request(app)
         .patch("/api/reviews/2")
@@ -462,3 +575,4 @@ describe("DELETE /api/comments/:comment_id", () => {
     });
   });
 });
+
