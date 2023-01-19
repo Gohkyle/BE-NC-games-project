@@ -81,11 +81,11 @@ exports.fetchReviewsByReviewId = (reviewId) => {
     GROUP BY reviews.review_id
     ;`;
 
-  return db.query(queryStr, [reviewId]).then(({ rows }) => {
-    if (!rows[0]) {
+  return db.query(queryStr, [reviewId]).then(({ rows: [row] }) => {
+    if (!row) {
       return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
     }
-    return rows[0];
+    return row;
   });
 };
 
@@ -116,8 +116,8 @@ exports.addCommentOnReviewId = (review_id, newComment) => {
     `;
     return db
       .query(queryStr, [newComment.username, newComment.body, review_id])
-      .then(({ rows }) => {
-        return rows[0].body;
+      .then(({ rows: [{ body }] }) => {
+        return body;
       });
   } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
@@ -133,11 +133,11 @@ exports.updateReviewVote = (review_id, updates) => {
 
     return db
       .query(queryStr, [updates.inc_votes, review_id])
-      .then(({ rows }) => {
-        if (!rows[0]) {
+      .then(({ rows: [row] }) => {
+        if (!row) {
           return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
         }
-        return rows[0];
+        return row;
       });
   } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
