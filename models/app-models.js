@@ -98,3 +98,21 @@ exports.fetchUsers = () => {
     return rows;
   });
 };
+
+exports.removeComment = (comment_id) => {
+  const queryStr = `
+    DELETE FROM comments
+    WHERE comment_id = $1
+    RETURNING * 
+  `;
+
+  return db.query(queryStr, [comment_id]).then(({ rows: [row] }) => {
+    if (!row) {
+      return Promise.reject({
+        statusCode: 400,
+        msg: "Bad Request: Comment does not exist!",
+      });
+    }
+    return row;
+  });
+};

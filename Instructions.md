@@ -15,11 +15,9 @@ To keep track of the tasks involved in this project we're going to use a kanban 
 ## Tasks
 
 FEATURE REQUEST
-The end point should also accept the following queries:
+A review response object should also now include:
 
-category, which selects the reviews by the category value specified in the query. If the query is omitted the endpoint should respond with all reviews.
-sort_by, which sorts the articles by any valid column (defaults to date)
-order, which can be set to asc or desc for ascending or descending (defaults to descending)
+-comment_count which is the total count of all the comments with this review_id - you should make use of queries to the database in order to achieve this.
 
 ## Git Branching and Pull Requests
 
