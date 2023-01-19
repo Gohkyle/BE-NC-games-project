@@ -10,14 +10,12 @@ exports.fetchCategories = () => {
 exports.fetchReviews = (
   category,
   sort_by = "created_at",
-  order_by = "DESC"
+  order_by = "DESC",
+  categories
 ) => {
-  const acceptedCategories = [
-    "euro game",
-    "social deduction",
-    "dexterity",
-    "children's games",
-  ];
+  const acceptedCategories = categories.map((category) => {
+    return category.slug;
+  });
   const acceptedSort_by = [
     "title",
     "designer",

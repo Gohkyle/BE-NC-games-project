@@ -129,7 +129,23 @@ describe("GET /api/reviews", () => {
               expect(reviews).toEqual([]);
             });
         });
-        // autopasses as the code doesn't allow for incorrect categories, thus never needs promise reject at row count 0
+        test.only("200: no 404 for categories that are newly added", () => {
+          const queryStr = `
+            INSERT INTO categories
+            (slug, description)
+            VALUES 
+            ('mind', 'think about it')
+            RETURNING *
+          ;`;
+          return db.query(queryStr).then(() => {
+            return request(app)
+              .get("/api/reviews?category=mind")
+              .expect(200)
+              .then(({ body: { reviews } }) => {
+                expect(reviews).toEqual([]);
+              });
+          });
+        });
       });
     });
     describe("sort_by", () => {

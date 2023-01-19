@@ -16,7 +16,6 @@ const {
   postCommentOnReviewId,
   patchReview,
   getUsers,
-
 } = require("./controllers/app-controllers");
 
 app.use(express.json());
