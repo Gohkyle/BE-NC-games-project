@@ -44,7 +44,7 @@ exports.fetchReviews = (
   }
 
   let queryStr = `
-  SELECT reviews.*, COUNT(comments.review_id) AS comment_count 
+  SELECT reviews.*, CAST(COUNT(comments.review_id) AS INT) AS comment_count
   FROM reviews
   LEFT JOIN comments 
   ON comments.review_id = reviews.review_id 
@@ -73,8 +73,12 @@ exports.fetchReviews = (
 
 exports.fetchReviewsByReviewId = (reviewId) => {
   const queryStr = `
-    SELECT * FROM reviews
-    WHERE review_id = $1
+    SELECT reviews.*, CAST(COUNT(comments.review_id) AS INT) AS comment_count 
+    FROM reviews
+    LEFT JOIN comments
+    ON reviews.review_id = comments.review_id
+    WHERE reviews.review_id = $1
+    GROUP BY reviews.review_id
     ;`;
 
   return db.query(queryStr, [reviewId]).then(({ rows }) => {

@@ -90,13 +90,13 @@ describe("GET /api/reviews", () => {
           return review.review_id === 2;
         });
 
-        expect(shouldBe3.comment_count).toBe("3");
+        expect(shouldBe3.comment_count).toBe(3);
 
         const shouldBe0 = reviews.find((review) => {
           return review.review_id === 1;
         });
 
-        expect(shouldBe0.comment_count).toBe("0");
+        expect(shouldBe0.comment_count).toBe(0);
       });
   });
   describe("?query", () => {
@@ -201,7 +201,7 @@ describe("GET /api/reviews", () => {
 });
 
 describe("GET /api/reviews/:review_id", () => {
-  test("200: resolves with a review object with all the correct keys and values", () => {
+  test("200: resolves with a review object with all the correct keys and values, including comment_count", () => {
     return request(app)
       .get("/api/reviews/2")
       .expect(200)
@@ -221,6 +221,7 @@ describe("GET /api/reviews/:review_id", () => {
         expect(review).toHaveProperty("category", "dexterity");
         expect(review).toHaveProperty("owner", "philippaclaire9");
         expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
+        expect(review).toHaveProperty("comment_count", 3);
       });
   });
   describe("ErrorHandlers:", () => {
@@ -514,3 +515,5 @@ describe("GET /api/users", () => {
       });
   });
 });
+
+//see Line 125, for comment count
