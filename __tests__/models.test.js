@@ -99,6 +99,133 @@ describe("GET /api/reviews", () => {
         expect(shouldBe0.comment_count).toBe("0");
       });
   });
+  describe("?query", () => {
+    describe("category", () => {
+      test("200: features a category query, that selects the reviews by the specified category", () => {
+        return request(app)
+          .get("/api/reviews?category=social deduction")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(11);
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("category", "social deduction");
+            });
+          });
+      });
+      test("200: endpoint responds with all the reviews, when query is omitted", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(13);
+          });
+      });
+      //is this necessary, as it is done in the original get request right?
+      describe("Error Handling:", () => {
+        test("400: category doesn't exist", () => {
+          return request(app)
+            .get("/api/reviews?category=card game")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: Category does not exist!");
+            });
+        });
+        test("200: category exists but has no reviews", () => {
+          return request(app)
+            .get("/api/reviews?category=children's games")
+            .expect(200)
+            .then(({ body: { reviews } }) => {
+              expect(reviews).toEqual([]);
+            });
+        });
+        // autopasses as the code doesn't allow for incorrect categories, thus never needs promise reject at row count 0
+      });
+    });
+    describe("sort_by", () => {
+      test("200: reviews can be sorted by different columns via query", () => {
+        return request(app)
+          .get("/api/reviews?sort_by=title")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("title", { descending: true });
+          });
+      });
+      test("200: reviews are sorted by date by default", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("created_at", { descending: true });
+          });
+      });
+      describe("Error Handling:", () => {
+        test("400: column name does not exist (42703)", () => {
+          // this test uses psql error code 42703 to throw back an error, potential for sql injection maybe?
+          return request(app)
+            .get("/api/reviews?sort_by=date")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: Column does not exist!");
+            });
+        });
+        test("400: only accepts set column names", () => {
+          // the method to pass this test uses custom error, with an accepted query values array, which means the sql error is never thrown
+          // I can delete the previous test as this tests for both,  but should I?
+          // I think it is dependent on the code written, so both tests are maybe needed?
+          return request(app)
+            .get("/api/reviews?sort_by=date")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: Column does not exist!");
+            });
+        });
+      });
+    });
+    describe("order_by", () => {
+      test("200: reviews are able to be sorted in ascending/descending", () => {
+        return request(app)
+          .get("/api/reviews?order_by=asc")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("created_at");
+          });
+      });
+      test("200: reviews are in descending order by default", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("created_at", { descending: true });
+          });
+      });
+      describe("Error Handling:", () => {
+        test("400: only takes ASC or DESC", () => {
+          return request(app)
+            .get("/api/reviews?order_by=true")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: ASC or DESC ONLY");
+            });
+        });
+      });
+    });
+    describe("multiple queries", () => {
+      test("able to take multiple queries", () => {
+        return request(app)
+          .get(
+            "/api/reviews?category=social deduction&order_by=asc&sort_by=title"
+          )
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("title");
+            expect(reviews).toHaveLength(11);
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("category", "social deduction");
+            });
+          });
+      });
+    });
+  });
 });
 
 describe("GET /api/reviews/:review_id", () => {
@@ -361,8 +488,7 @@ describe("PATCH /api/reviews/:review_id", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    //is using psql error 23502 sufficient to test for this?
-
+    //test passes through error handling from line 396
     test("400: only have inc_votes", () => {
       return request(app)
         .patch("/api/reviews/2")
@@ -417,3 +543,5 @@ describe("GET /api/users", () => {
       });
   });
 });
+
+// my GET /api/review?query tests are in the GET/api/review block, Line 102

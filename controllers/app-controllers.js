@@ -5,20 +5,24 @@ const {
   fetchReviews,
   addCommentOnReviewId,
   updateReviewVote,
-   fetchUsers,
-
+  fetchUsers,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
-  fetchCategories().then((categories) => {
-    response.status(200).send({ categories });
-  });
+  fetchCategories()
+    .then((categories) => {
+      response.status(200).send({ categories });
+    })
+    .catch(next);
 };
 
 exports.getReviews = (request, response, next) => {
-  fetchReviews().then((reviews) => {
-    response.status(200).send({ reviews });
-  });
+  const { category, sort_by, order_by } = request.query;
+  fetchReviews(category, sort_by, order_by)
+    .then((reviews) => {
+      response.status(200).send({ reviews });
+    })
+    .catch(next);
 };
 
 exports.getReviewsByReviewId = (request, response, next) => {
@@ -66,7 +70,9 @@ exports.patchReview = (request, response, next) => {
 };
 
 exports.getUsers = (request, response, next) => {
-  fetchUsers().then((users) => {
-    response.status(200).send({ users });
-  });
+  fetchUsers()
+    .then((users) => {
+      response.status(200).send({ users });
+    })
+    .catch(next);
 };
