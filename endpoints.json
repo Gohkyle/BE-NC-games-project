@@ -33,33 +33,5 @@
         }
       ]
     }
-  },
-  "GET /api/reviews/:review_id": {
-    "description": "serves a review object requested in the endpoint",
-    "queries": [],
-    "exampleResponse": {
-      "review": {
-        "review_id": 3,
-        "title": "One Night Ultimate Werewolf",
-        "designer": "Akihisa Okui",
-        "owner": "happyamy2016",
-        "review_body": "We couldn't find the werewolf!",
-        "review_img_url": "https://images.pexels.com/photos/5350049/pexels-photo-5350049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
-        "category": "hidden-roles",
-        "created_at": 1610964101251,
-        "votes": 5,
-        "comment_count": 3
-      }
-    }
-  },
-  "GET /api/reviews/:review_id/comments": {
-    "description": "serves an array of all the comments associated with the end point's review_id",
-    "queries": [],
-    "exampleResponse": {
-      "comments": {
-        comm
-      }
-    }
-
   }
 }
