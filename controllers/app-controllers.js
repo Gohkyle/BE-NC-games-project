@@ -5,8 +5,7 @@ const {
   fetchReviews,
   addCommentOnReviewId,
   updateReviewVote,
-   fetchUsers,
-
+  fetchUsers,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
