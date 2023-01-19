@@ -16,7 +16,8 @@ const {
   postCommentOnReviewId,
   patchReview,
   getUsers,
-  getApiEndpoints,
+  deleteComment,
+   getApiEndpoints,
 } = require("./controllers/app-controllers");
 
 app.use(express.json());
@@ -31,9 +32,11 @@ app.get("/api/reviews/:review_id/comments", getCommentsByReviewId);
 
 app.post("/api/reviews/:review_id/comments", postCommentOnReviewId);
 
+app.patch("/api/reviews/:review_id", patchReview);
+
 app.get("/api/users", getUsers);
 
-app.patch("/api/reviews/:review_id", patchReview);
+app.delete("/api/comments/:comment_id", deleteComment);
 
 app.get("/api", getApiEndpoints);
 

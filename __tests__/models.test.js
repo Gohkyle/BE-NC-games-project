@@ -129,7 +129,23 @@ describe("GET /api/reviews", () => {
               expect(reviews).toEqual([]);
             });
         });
-        // autopasses as the code doesn't allow for incorrect categories, thus never needs promise reject at row count 0
+        test("200: no 404 for categories that are newly added", () => {
+          const queryStr = `
+            INSERT INTO categories
+            (slug, description)
+            VALUES 
+            ('mind', 'think about it')
+            RETURNING *
+          ;`;
+          return db.query(queryStr).then(() => {
+            return request(app)
+              .get("/api/reviews?category=mind")
+              .expect(200)
+              .then(({ body: { reviews } }) => {
+                expect(reviews).toEqual([]);
+              });
+          });
+        });
       });
     });
     describe("sort_by", () => {
@@ -514,6 +530,52 @@ describe("GET /api/users", () => {
   });
 });
 
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: responds with undefined", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then(({ body: { deletedComment } }) => {
+        expect(deletedComment).toBeUndefined();
+      });
+  });
+  test("404: comment is removed from database, comment not found", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then(() => {
+        return db
+          .query(
+            `
+      SELECT * FROM comments
+      WHERE comment_id = 4
+      ;`
+          )
+          .then(({ rowCount }) => {
+            expect(rowCount).toBe(0);
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("400: comment_id is not valid", () => {
+      return request(app)
+        .delete("/api/comments/banana")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("404: comment_id does not exist", () => {
+      return request(app)
+        .delete("/api/comments/999")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request: Comment does not exist!");
+        });
+    });
+  });
+
+});
 describe("GET /api", () => {
   test("200: resolves with a endpoints.json", () => {
     return request(app)
@@ -534,4 +596,3 @@ describe("GET /api", () => {
         expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
       });
   });
-});

@@ -11,14 +11,12 @@ exports.fetchCategories = () => {
 exports.fetchReviews = (
   category,
   sort_by = "created_at",
-  order_by = "DESC"
+  order_by = "DESC",
+  categories
 ) => {
-  const acceptedCategories = [
-    "euro game",
-    "social deduction",
-    "dexterity",
-    "children's games",
-  ];
+  const acceptedCategories = categories.map((category) => {
+    return category.slug;
+  });
   const acceptedSort_by = [
     "title",
     "designer",
@@ -82,11 +80,11 @@ exports.fetchReviewsByReviewId = (reviewId) => {
     GROUP BY reviews.review_id
     ;`;
 
-  return db.query(queryStr, [reviewId]).then(({ rows }) => {
-    if (!rows[0]) {
+  return db.query(queryStr, [reviewId]).then(({ rows: [row] }) => {
+    if (!row) {
       return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
     }
-    return rows[0];
+    return row;
   });
 };
 
@@ -117,8 +115,8 @@ exports.addCommentOnReviewId = (review_id, newComment) => {
     `;
     return db
       .query(queryStr, [newComment.username, newComment.body, review_id])
-      .then(({ rows }) => {
-        return rows[0].body;
+      .then(({ rows: [{ body }] }) => {
+        return body;
       });
   } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
@@ -134,11 +132,11 @@ exports.updateReviewVote = (review_id, updates) => {
 
     return db
       .query(queryStr, [updates.inc_votes, review_id])
-      .then(({ rows }) => {
-        if (!rows[0]) {
+      .then(({ rows: [row] }) => {
+        if (!row) {
           return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
         }
-        return rows[0];
+        return row;
       });
   } else return Promise.reject({ statusCode: 400, msg: "Bad Request" });
 };
@@ -153,8 +151,26 @@ exports.fetchUsers = () => {
   });
 };
 
+exports.removeComment = (comment_id) => {
+  const queryStr = `
+    DELETE FROM comments
+    WHERE comment_id = $1
+    RETURNING * 
+  `;
+
+  return db.query(queryStr, [comment_id]).then(({ rows: [row] }) => {
+    if (!row) {
+      return Promise.reject({
+        statusCode: 400,
+        msg: "Bad Request: Comment does not exist!",
+      });
+    }
+    return row;
+
+  });
+};
 exports.fetchApiEndpoints = () => {
   return fs.readFile("./endpoints.json", "utf-8").then((content) => {
     return JSON.parse(content);
-  });
+     });
 };

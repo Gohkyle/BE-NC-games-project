@@ -6,7 +6,9 @@ const {
   addCommentOnReviewId,
   updateReviewVote,
   fetchUsers,
-  fetchApiEndpoints,
+  removeComment,
+   fetchApiEndpoints,
+
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -19,7 +21,10 @@ exports.getCategories = (request, response, next) => {
 
 exports.getReviews = (request, response, next) => {
   const { category, sort_by, order_by } = request.query;
-  fetchReviews(category, sort_by, order_by)
+  fetchCategories()
+    .then((categories) => {
+      return fetchReviews(category, sort_by, order_by, categories);
+    })
     .then((reviews) => {
       response.status(200).send({ reviews });
     })
@@ -78,10 +83,19 @@ exports.getUsers = (request, response, next) => {
     .catch(next);
 };
 
+exports.deleteComment = (request, response, next) => {
+  const { comment_id } = request.params;
+  removeComment(comment_id)
+    .then((deletedComment) => {
+      response.status(204).send({ deletedComment });
+
+    })
+    .catch(next);
+};
 exports.getApiEndpoints = (request, response, next) => {
   fetchApiEndpoints()
     .then((endpoints) => {
       response.status(200).send({ endpoints });
-    })
+         })
     .catch(next);
 };
