@@ -129,7 +129,7 @@ describe("GET /api/reviews", () => {
               expect(reviews).toEqual([]);
             });
         });
-        test.only("200: no 404 for categories that are newly added", () => {
+        test("200: no 404 for categories that are newly added", () => {
           const queryStr = `
             INSERT INTO categories
             (slug, description)
