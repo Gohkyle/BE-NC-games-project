@@ -69,6 +69,10 @@
   "POST /api/reviews/:review_id/comments": {
     "description": "takes a request of accepted usernames and a comment body to insert into database, serves the string comment",
     "queries": [],
+    "exampleBody": {
+      "username": "philippaclaire9",
+      "body": "first"
+    },
     "exampleResponse": {
       "postedComment": "First"
     }
@@ -76,6 +80,9 @@
   "PATCH /api/reviews/:review_id": {
     "description": "takes a number, updates the votes for the review_id, serves the updated row",
     "queries": [],
+    "exampleBody": {
+      "inc_votes": 5
+    },
     "exampleResponse": {
       "updatedReview": {
         "review_id": 2,

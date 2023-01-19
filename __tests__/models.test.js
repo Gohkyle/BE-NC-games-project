@@ -133,7 +133,7 @@ describe("GET /api/reviews", () => {
       });
     });
     describe("sort_by", () => {
-      test("200: reviews can be sorted by different columns via query", () => {
+      test.only("200: reviews can be sorted by different columns via query", () => {
         return request(app)
           .get("/api/reviews?sort_by=title")
           .expect(200)
