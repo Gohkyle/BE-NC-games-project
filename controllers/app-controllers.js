@@ -9,9 +9,11 @@ const {
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
-  fetchCategories().then((categories) => {
-    response.status(200).send({ categories });
-  });
+  fetchCategories()
+    .then((categories) => {
+      response.status(200).send({ categories });
+    })
+    .catch(next);
 };
 
 exports.getReviews = (request, response, next) => {
@@ -68,7 +70,9 @@ exports.patchReview = (request, response, next) => {
 };
 
 exports.getUsers = (request, response, next) => {
-  fetchUsers().then((users) => {
-    response.status(200).send({ users });
-  });
+  fetchUsers()
+    .then((users) => {
+      response.status(200).send({ users });
+    })
+    .catch(next);
 };
