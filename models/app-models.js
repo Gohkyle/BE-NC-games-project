@@ -7,16 +7,66 @@ exports.fetchCategories = () => {
   });
 };
 
-exports.fetchReviews = () => {
-  const queryStr = `
+exports.fetchReviews = (
+  category,
+  sort_by = "created_at",
+  order_by = "DESC"
+) => {
+  const acceptedCategories = [
+    "euro game",
+    "social deduction",
+    "dexterity",
+    "children's games",
+  ];
+  const acceptedSort_by = [
+    "title",
+    "designer",
+    "owner",
+    "category",
+    "created_at",
+    "votes",
+  ];
+
+  let queryValues = [];
+
+  if (!acceptedSort_by.includes(sort_by)) {
+    return Promise.reject({
+      statusCode: 400,
+      msg: "Bad Request: Column does not exist!",
+    });
+  }
+
+  if (!["ASC", "DESC"].includes(order_by.toUpperCase())) {
+    return Promise.reject({
+      statusCode: 400,
+      msg: "Bad Request: ASC or DESC ONLY",
+    });
+  }
+
+  let queryStr = `
   SELECT reviews.*, COUNT(comments.review_id) AS comment_count 
-  FROM reviews 
+  FROM reviews
   LEFT JOIN comments 
   ON comments.review_id = reviews.review_id 
-  GROUP BY reviews.review_id
-  ORDER BY reviews.created_at DESC;
   `;
-  return db.query(queryStr).then(({ rows }) => {
+
+  if (category) {
+    if (!acceptedCategories.includes(category)) {
+      return Promise.reject({
+        statusCode: 400,
+        msg: "Bad Request: Category does not exist!",
+      });
+    }
+    queryStr += `WHERE category = $1 `;
+    queryValues.push(category);
+  }
+
+  queryStr += `
+  GROUP BY reviews.review_id
+  ORDER BY reviews.${sort_by} ${order_by};
+  `;
+
+  return db.query(queryStr, queryValues).then(({ rows }) => {
     return rows;
   });
 };
@@ -69,7 +119,6 @@ exports.addCommentOnReviewId = (review_id, newComment) => {
 };
 
 exports.updateReviewVote = (review_id, updates) => {
-  console.log(updates, "updates");
   if (Object.keys(updates).length === 1 && updates.inc_votes) {
     const queryStr = `
       UPDATE reviews

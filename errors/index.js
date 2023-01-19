@@ -13,12 +13,16 @@ exports.handlePsqlErrors = (error, request, response, next) => {
     response.status(400).send({ msg: "Bad Request" });
   }
   if (error.code === "23503") {
-    //Author is no present in users
+    //Author is not present in users
     response.status(404).send({ msg: "Username Not Found" });
   }
   if (error.code === "23502") {
     //empty rows, that cannot be null
     response.status(400).send({ msg: "Bad Request" });
+  }
+  if (error.code === "42703") {
+    //column does not exist
+    response.status(400).send({ msg: "Bad Request: Column does not exist!" });
   } else next(error);
 };
 
