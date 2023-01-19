@@ -149,7 +149,7 @@ describe("GET /api/reviews", () => {
       });
     });
     describe("sort_by", () => {
-      test("200: reviews can be sorted by different columns via query", () => {
+      test.only("200: reviews can be sorted by different columns via query", () => {
         return request(app)
           .get("/api/reviews?sort_by=title")
           .expect(200)
@@ -574,4 +574,25 @@ describe("DELETE /api/comments/:comment_id", () => {
         });
     });
   });
+
 });
+describe("GET /api", () => {
+  test("200: resolves with a endpoints.json", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        expect(endpoints).toHaveProperty("GET /api");
+        expect(endpoints).toHaveProperty("GET /api/categories");
+        expect(endpoints).toHaveProperty("GET /api/reviews");
+        expect(endpoints).toHaveProperty("GET /api/reviews/:review_id");
+        expect(endpoints).toHaveProperty(
+          "GET /api/reviews/:review_id/comments"
+        );
+        expect(endpoints).toHaveProperty(
+          "POST /api/reviews/:review_id/comments"
+        );
+        expect(endpoints).toHaveProperty("PATCH /api/reviews/:review_id");
+        expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
+      });
+  });

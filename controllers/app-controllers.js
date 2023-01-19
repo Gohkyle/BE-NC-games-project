@@ -7,6 +7,8 @@ const {
   updateReviewVote,
   fetchUsers,
   removeComment,
+   fetchApiEndpoints,
+
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -86,6 +88,14 @@ exports.deleteComment = (request, response, next) => {
   removeComment(comment_id)
     .then((deletedComment) => {
       response.status(204).send({ deletedComment });
+
     })
+    .catch(next);
+};
+exports.getApiEndpoints = (request, response, next) => {
+  fetchApiEndpoints()
+    .then((endpoints) => {
+      response.status(200).send({ endpoints });
+         })
     .catch(next);
 };

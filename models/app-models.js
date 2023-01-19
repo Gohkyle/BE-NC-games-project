@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const fs = require("fs/promises");
 
 exports.fetchCategories = () => {
   const queryStr = `SELECT * FROM categories;`;
@@ -165,5 +166,11 @@ exports.removeComment = (comment_id) => {
       });
     }
     return row;
+
   });
+};
+exports.fetchApiEndpoints = () => {
+  return fs.readFile("./endpoints.json", "utf-8").then((content) => {
+    return JSON.parse(content);
+     });
 };
