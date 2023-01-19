@@ -530,4 +530,49 @@ describe("GET /api/users", () => {
   });
 });
 
-//see Line 125, for comment count
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: responds with undefined", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then(({ body: { deletedComment } }) => {
+        expect(deletedComment).toBeUndefined();
+      });
+  });
+  test("404: comment is removed from database, comment not found", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then(() => {
+        return db
+          .query(
+            `
+      SELECT * FROM comments
+      WHERE comment_id = 4
+      ;`
+          )
+          .then(({ rowCount }) => {
+            expect(rowCount).toBe(0);
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("400: comment_id is not valid", () => {
+      return request(app)
+        .delete("/api/comments/banana")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("404: comment_id does not exist", () => {
+      return request(app)
+        .delete("/api/comments/999")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request: Comment does not exist!");
+        });
+    });
+  });
+});
+
