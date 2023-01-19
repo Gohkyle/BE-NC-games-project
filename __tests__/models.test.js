@@ -514,4 +514,24 @@ describe("GET /api/users", () => {
   });
 });
 
-//see Line 125, for comment count
+describe("GET /api", () => {
+  test("200: resolves with a endpoints.json", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        expect(endpoints).toHaveProperty("GET /api");
+        expect(endpoints).toHaveProperty("GET /api/categories");
+        expect(endpoints).toHaveProperty("GET /api/reviews");
+        expect(endpoints).toHaveProperty("GET /api/reviews/:review_id");
+        expect(endpoints).toHaveProperty(
+          "GET /api/reviews/:review_id/comments"
+        );
+        expect(endpoints).toHaveProperty(
+          "POST /api/reviews/:review_id/comments"
+        );
+        expect(endpoints).toHaveProperty("PATCH /api/reviews/:review_id");
+        expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
+      });
+  });
+});

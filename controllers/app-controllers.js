@@ -6,6 +6,7 @@ const {
   addCommentOnReviewId,
   updateReviewVote,
   fetchUsers,
+  fetchApiEndpoints,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -73,6 +74,14 @@ exports.getUsers = (request, response, next) => {
   fetchUsers()
     .then((users) => {
       response.status(200).send({ users });
+    })
+    .catch(next);
+};
+
+exports.getApiEndpoints = (request, response, next) => {
+  fetchApiEndpoints()
+    .then((endpoints) => {
+      response.status(200).send({ endpoints });
     })
     .catch(next);
 };
