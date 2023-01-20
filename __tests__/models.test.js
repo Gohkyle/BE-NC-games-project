@@ -544,15 +544,11 @@ describe("DELETE /api/comments/:comment_id", () => {
       .delete("/api/comments/4")
       .expect(204)
       .then(() => {
-        return db
-          .query(
-            `
-      SELECT * FROM comments
-      WHERE comment_id = 4
-      ;`
-          )
-          .then(({ rowCount }) => {
-            expect(rowCount).toBe(0);
+        return request(app)
+          .get("/api/reviews/2/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(2);
           });
       });
   });
