@@ -574,7 +574,6 @@ describe("DELETE /api/comments/:comment_id", () => {
         });
     });
   });
-
 });
 describe("GET /api", () => {
   test("200: resolves with a endpoints.json", () => {
@@ -596,3 +595,4 @@ describe("GET /api", () => {
         expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
       });
   });
+});
