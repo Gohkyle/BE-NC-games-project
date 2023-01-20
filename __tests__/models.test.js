@@ -208,7 +208,7 @@ describe("GET /api/reviews", () => {
 });
 
 describe("GET /api/reviews/:review_id", () => {
-  test("200: resolves with a review object with all the correct keys and values, including comment_count", () => {
+  test("200: resolves with a review object with all the correct keys and values", () => {
     return request(app)
       .get("/api/reviews/2")
       .expect(200)
@@ -549,6 +549,11 @@ describe("DELETE /api/comments/:comment_id", () => {
           .expect(200)
           .then(({ body: { comments } }) => {
             expect(comments).toHaveLength(2);
+
+            comments.forEach(({ comment_id }) => {
+              console.log(comment_id);
+              expect(comment_id).not.toBe(4);
+            });
           });
       });
   });
@@ -590,5 +595,130 @@ describe("GET /api", () => {
         expect(endpoints).toHaveProperty("PATCH /api/reviews/:review_id");
         expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
       });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: resolves with a user object with all the correct keys and values", () => {
+    return request(app)
+      .get("/api/users/philippaclaire9")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toHaveProperty("username", "philippaclaire9");
+        expect(user).toHaveProperty("name", "philippa");
+        expect(user).toHaveProperty(
+          "avatar_url",
+          "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+        );
+      });
+  });
+  describe("Error Handling:", () => {
+    test("404: username not found", () => {
+      return request(app)
+        .get("/api/users/EddTheDuck")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("200: returns the updated comment", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body: { updatedComment } }) => {
+        console.log(updatedComment);
+        expect(updatedComment).toHaveProperty("comment_id", 2);
+        expect(updatedComment).toHaveProperty(
+          "body",
+          "My dog loved this game too!"
+        );
+        expect(updatedComment).toHaveProperty("votes", 14);
+        expect(updatedComment).toHaveProperty("author", "mallionaire");
+        expect(updatedComment).toHaveProperty("review_id", 3);
+        expect(updatedComment).toHaveProperty(
+          "created_at",
+          "2021-01-18T10:09:05.410Z"
+        );
+      });
+  });
+  test("200: the database is updated", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: -1 })
+      .expect(200)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/3/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            const commentId2 = comments.find(({ comment_id }) => {
+              return comment_id === 2;
+            });
+            expect(commentId2).toHaveProperty("comment_id", 2);
+            expect(commentId2).toHaveProperty("review_id", 3);
+            expect(commentId2).toHaveProperty("votes", 12);
+          });
+      });
+  });
+  describe.only("Error Handling:", () => {
+    test("404: comment_id does not exist", () => {
+      return request(app)
+        .patch("/api/comments/9999")
+        .send({ inc_votes: 1 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Comment Not Found");
+        });
+    });
+    test("400: comment_id is not valid", () => {
+      return request(app)
+        .patch("/api/comments/sunshine")
+        .send({ inc_votes: 1 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only takes inc_votes", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ body: "new content" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400: body only takes one key", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ body: "new content", inc_votes: 1 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400:malformed body", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({})
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400: votes is not a number", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ inc_votes: "five" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
   });
 });

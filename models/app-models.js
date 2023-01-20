@@ -166,11 +166,51 @@ exports.removeComment = (comment_id) => {
       });
     }
     return row;
-
   });
 };
+
 exports.fetchApiEndpoints = () => {
   return fs.readFile("./endpoints.json", "utf-8").then((content) => {
     return JSON.parse(content);
-     });
+  });
+};
+
+exports.fetchUsersByUserId = (username) => {
+  const queryStr = `
+    SELECT * FROM users
+    WHERE username = $1
+  ;`;
+  return db.query(queryStr, [username]).then(({ rows: [row] }) => {
+    if (!row) {
+      return Promise.reject({ statusCode: 404, msg: "Username Not Found" });
+    }
+    return row;
+  });
+};
+
+exports.updateCommentVote = (comment_id, updates) => {
+  if (
+    Object.keys(updates).length !== 1 ||
+    !updates.hasOwnProperty("inc_votes")
+  ) {
+    return Promise.reject({
+      statusCode: 400,
+      msg: "Bad Request Body",
+    });
+  }
+  const queryStr = `
+    UPDATE comments
+    SET votes = votes + $1
+    WHERE comment_id = $2
+    RETURNING *
+  ;`;
+
+  return db
+    .query(queryStr, [updates.inc_votes, comment_id])
+    .then(({ rows: [row] }) => {
+      if (!row) {
+        return Promise.reject({ statusCode: 404, msg: "Comment Not Found" });
+      }
+      return row;
+    });
 };
