@@ -214,29 +214,3 @@ exports.updateCommentVote = (comment_id, updates) => {
       return row;
     });
 };
-
-exports.addReview = (requestBody) => {
-  const { title, designer, owner, review_img_url, review_body, category } =
-    requestBody;
-
-  const queryValues = [
-    title,
-    designer,
-    owner,
-    review_img_url,
-    review_body,
-    category,
-  ];
-
-  const queryStr = `
-  INSERT INTO reviews
-  (title, designer, owner, review_img_url, review_body, category)
-  VALUES
-  ($1, $2, $3, $4, $5, $6)
-  RETURNING *, 0 AS comment_count;
-  ;`;
-
-  return db.query(queryStr, queryValues).then(({ rows: [row] }) => {
-    return row;
-  });
-};
