@@ -10,6 +10,7 @@ const {
   fetchApiEndpoints,
   fetchUsersByUserId,
   updateCommentVote,
+  addReview,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -116,6 +117,15 @@ exports.patchComment = (request, response, next) => {
   updateCommentVote(comment_id, updates)
     .then((updatedComment) => {
       response.status(200).send({ updatedComment });
+    })
+    .catch(next);
+};
+
+exports.postReview = (request, response, next) => {
+  const requestBody = request.body;
+  addReview(requestBody)
+    .then((review) => {
+      response.status(201).send({ review });
     })
     .catch(next);
 };
