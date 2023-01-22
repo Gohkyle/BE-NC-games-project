@@ -234,8 +234,7 @@ exports.addReview = (requestBody) => {
     queryStr += `, review_img_url`;
     queryValues.push(review_img_url);
   }
-  console.log(requestBody, "<<<keys");
-  console.log(queryValues, "<<<accepted keys");
+
   if (
     Object.keys(requestBody).includes("review_img_url") &&
     Object.keys(requestBody).length !== 6
