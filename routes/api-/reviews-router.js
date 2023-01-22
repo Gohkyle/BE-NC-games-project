@@ -10,6 +10,7 @@ const {
 
 reviewsRouter.route("/").get(getReviews);
 
+
 reviewsRouter.get("/:review_id", getReviewsByReviewId);
 
 reviewsRouter

@@ -1,5 +1,6 @@
 const db = require("../db/connection");
 const fs = require("fs/promises");
+const format = require("pg-format");
 
 exports.fetchCategories = () => {
   const queryStr = `SELECT * FROM categories;`;
@@ -213,4 +214,49 @@ exports.updateCommentVote = (comment_id, updates) => {
       }
       return row;
     });
+};
+
+exports.addReview = (requestBody) => {
+  const { title, designer, owner, review_img_url, review_body, category } =
+    requestBody;
+
+  const queryValues = [title, designer, owner, review_body, category];
+
+  if (queryValues.includes(undefined)) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+
+  let queryStr = `
+  INSERT INTO reviews
+  (title, designer, owner, review_body, category`;
+
+  if (review_img_url) {
+    queryStr += `, review_img_url`;
+    queryValues.push(review_img_url);
+  }
+  console.log(requestBody, "<<<keys");
+  console.log(queryValues, "<<<accepted keys");
+  if (
+    Object.keys(requestBody).includes("review_img_url") &&
+    Object.keys(requestBody).length !== 6
+  ) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+  if (
+    !Object.keys(requestBody).includes("review_img_url") &&
+    Object.keys(requestBody).length !== 5
+  ) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+
+  queryStr += `)
+  VALUES
+  %L
+  RETURNING *, 0 AS comment_count;
+  ;`;
+
+  queryStr = format(queryStr, [queryValues]);
+  return db.query(queryStr).then(({ rows: [row] }) => {
+    return row;
+  });
 };
