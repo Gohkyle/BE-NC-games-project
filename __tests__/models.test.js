@@ -208,7 +208,7 @@ describe("GET /api/reviews", () => {
 });
 
 describe("GET /api/reviews/:review_id", () => {
-  test("200: resolves with a review object with all the correct keys and values, including comment_count", () => {
+  test("200: resolves with a review object with all the correct keys and values", () => {
     return request(app)
       .get("/api/reviews/2")
       .expect(200)
@@ -336,7 +336,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
         expect(postedComment).toBe("Hello");
       });
   });
-  test("200: returns the expect comment object", () => {
+  test("200: database has a new entry", () => {
     const commentBody = { username: "philippaclaire9", body: "Hello" };
 
     return request(app)
@@ -544,15 +544,16 @@ describe("DELETE /api/comments/:comment_id", () => {
       .delete("/api/comments/4")
       .expect(204)
       .then(() => {
-        return db
-          .query(
-            `
-      SELECT * FROM comments
-      WHERE comment_id = 4
-      ;`
-          )
-          .then(({ rowCount }) => {
-            expect(rowCount).toBe(0);
+        return request(app)
+          .get("/api/reviews/2/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(2);
+
+            comments.forEach(({ comment_id }) => {
+              console.log(comment_id);
+              expect(comment_id).not.toBe(4);
+            });
           });
       });
   });
@@ -575,6 +576,7 @@ describe("DELETE /api/comments/:comment_id", () => {
     });
   });
 });
+
 describe("GET /api", () => {
   test("200: resolves with a endpoints.json", () => {
     return request(app)
@@ -594,5 +596,346 @@ describe("GET /api", () => {
         expect(endpoints).toHaveProperty("PATCH /api/reviews/:review_id");
         expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
       });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: resolves with a user object with all the correct keys and values", () => {
+    return request(app)
+      .get("/api/users/philippaclaire9")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toHaveProperty("username", "philippaclaire9");
+        expect(user).toHaveProperty("name", "philippa");
+        expect(user).toHaveProperty(
+          "avatar_url",
+          "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+        );
+      });
+  });
+  describe("Error Handling:", () => {
+    test("404: username not found", () => {
+      return request(app)
+        .get("/api/users/EddTheDuck")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("200: returns the updated comment", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body: { updatedComment } }) => {
+        console.log(updatedComment);
+        expect(updatedComment).toHaveProperty("comment_id", 2);
+        expect(updatedComment).toHaveProperty(
+          "body",
+          "My dog loved this game too!"
+        );
+        expect(updatedComment).toHaveProperty("votes", 14);
+        expect(updatedComment).toHaveProperty("author", "mallionaire");
+        expect(updatedComment).toHaveProperty("review_id", 3);
+        expect(updatedComment).toHaveProperty(
+          "created_at",
+          "2021-01-18T10:09:05.410Z"
+        );
+      });
+  });
+  test("200: the database is updated", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: -1 })
+      .expect(200)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/3/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            const commentId2 = comments.find(({ comment_id }) => {
+              return comment_id === 2;
+            });
+            expect(commentId2).toHaveProperty("comment_id", 2);
+            expect(commentId2).toHaveProperty("review_id", 3);
+            expect(commentId2).toHaveProperty("votes", 12);
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("404: comment_id does not exist", () => {
+      return request(app)
+        .patch("/api/comments/9999")
+        .send({ inc_votes: 1 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Comment Not Found");
+        });
+    });
+    test("400: comment_id is not valid", () => {
+      return request(app)
+        .patch("/api/comments/sunshine")
+        .send({ inc_votes: 1 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only takes inc_votes", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ body: "new content" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400: body only takes one key", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ body: "new content", inc_votes: 1 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400:malformed body", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({})
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400: votes is not a number", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ inc_votes: "five" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("POST /api/reviews", () => {
+  test("201: responds with an object with all the correct keys", () => {
+    const reviewRequestBody = {
+      owner: "philippaclaire9",
+      title: "Catan",
+      review_body:
+        "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+      designer: "Klaus Teuber",
+      category: "children's games",
+      review_img_url:
+        "https://store-images.s-microsoft.com/image/apps.15567.14321522258952035.0bdbf2e3-3d9e-4997-92d8-7874c1432866.b0f7e376-74ca-4321-81f0-0c90a485beb1",
+    };
+    return request(app)
+      .post("/api/reviews")
+      .send(reviewRequestBody)
+      .expect(201)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("owner", "philippaclaire9");
+        expect(review).toHaveProperty("title", "Catan");
+        expect(review).toHaveProperty(
+          "review_body",
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!"
+        );
+        expect(review).toHaveProperty("designer", "Klaus Teuber");
+        expect(review).toHaveProperty("category", "children's games");
+        expect(review).toHaveProperty(
+          "review_img_url",
+          "https://store-images.s-microsoft.com/image/apps.15567.14321522258952035.0bdbf2e3-3d9e-4997-92d8-7874c1432866.b0f7e376-74ca-4321-81f0-0c90a485beb1"
+        );
+        expect(review).toHaveProperty("review_id", 14);
+        expect(review).toHaveProperty("votes", 0);
+        expect(review).toHaveProperty("created_at");
+      });
+  });
+  test("201: also responds with a comment_count key", () => {
+    const reviewRequestBody = {
+      owner: "philippaclaire9",
+      title: "Catan",
+      review_body:
+        "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+      designer: "Klaus Teuber",
+      category: "children's games",
+      review_img_url:
+        "https://store-images.s-microsoft.com/image/apps.15567.14321522258952035.0bdbf2e3-3d9e-4997-92d8-7874c1432866.b0f7e376-74ca-4321-81f0-0c90a485beb1",
+    };
+    return request(app)
+      .post("/api/reviews")
+      .send(reviewRequestBody)
+      .expect(201)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("comment_count", 0);
+      });
+  });
+  test("200: database has a new entry", () => {
+    const reviewRequestBody = {
+      owner: "philippaclaire9",
+      title: "Catan",
+      review_body:
+        "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+      designer: "Klaus Teuber",
+      category: "children's games",
+      review_img_url:
+        "https://store-images.s-microsoft.com/image/apps.15567.14321522258952035.0bdbf2e3-3d9e-4997-92d8-7874c1432866.b0f7e376-74ca-4321-81f0-0c90a485beb1",
+    };
+    return request(app)
+      .post("/api/reviews")
+      .send(reviewRequestBody)
+      .expect(201)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(14);
+          });
+      });
+  });
+  test("201: review_img_url is given default url if not stated", () => {
+    const reviewRequestBody = {
+      owner: "philippaclaire9",
+      title: "Catan",
+      review_body:
+        "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+      designer: "Klaus Teuber",
+      category: "children's games",
+    };
+    return request(app)
+      .post("/api/reviews")
+      .send(reviewRequestBody)
+      .expect(201)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?w=700&h=700"
+        );
+      });
+  });
+
+  describe("Error Handling:", () => {
+    test("404: not a valid owner", () => {
+      const reviewRequestBody = {
+        owner: "EddTheDuck",
+        title: "Catan",
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        designer: "Klaus Teuber",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+    test("400: malformed body", () => {
+      const reviewRequestBody = {
+        owner: "philippaClaire9",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: malformed body", () => {
+      const reviewRequestBody = {
+        owner: "philippaClaire9",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only accepts certain keys", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        comment: "I like this game",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: does not accept any excess keys in the body (wihtout review_img_url)", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        designer: "Klaus Teuber",
+        comment: "I like this game",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: does not accept any excess keys in the body, (with review_img_url)", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        designer: "Klaus Teuber",
+        comment: "I like this game",
+        category: "children's games",
+        review_img_url: "http://",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: all NOT NULL columns are fulfilled", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        designer: "Klaus Teuber",
+        comment: "I like this game",
+        category: "children's games",
+        review_img_url: "http://",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
   });
 });

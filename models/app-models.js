@@ -1,5 +1,6 @@
 const db = require("../db/connection");
 const fs = require("fs/promises");
+const format = require("pg-format");
 
 exports.fetchCategories = () => {
   const queryStr = `SELECT * FROM categories;`;
@@ -166,11 +167,101 @@ exports.removeComment = (comment_id) => {
       });
     }
     return row;
-
   });
 };
+
 exports.fetchApiEndpoints = () => {
   return fs.readFile("./endpoints.json", "utf-8").then((content) => {
     return JSON.parse(content);
-     });
+  });
+};
+
+exports.fetchUsersByUserId = (username) => {
+  const queryStr = `
+    SELECT * FROM users
+    WHERE username = $1
+  ;`;
+  return db.query(queryStr, [username]).then(({ rows: [row] }) => {
+    if (!row) {
+      return Promise.reject({ statusCode: 404, msg: "Username Not Found" });
+    }
+    return row;
+  });
+};
+
+exports.updateCommentVote = (comment_id, updates) => {
+  if (
+    Object.keys(updates).length !== 1 ||
+    !updates.hasOwnProperty("inc_votes")
+  ) {
+    return Promise.reject({
+      statusCode: 400,
+      msg: "Bad Request Body",
+    });
+  }
+  const queryStr = `
+    UPDATE comments
+    SET votes = votes + $1
+    WHERE comment_id = $2
+    RETURNING *
+  ;`;
+
+  return db
+    .query(queryStr, [updates.inc_votes, comment_id])
+    .then(({ rows: [row] }) => {
+      if (!row) {
+        return Promise.reject({ statusCode: 404, msg: "Comment Not Found" });
+      }
+      return row;
+    });
+};
+
+exports.addReview = (requestBody) => {
+  const { title, designer, owner, review_img_url, review_body, category } =
+    requestBody;
+
+  const queryValues = [title, designer, owner, review_body, category];
+
+  if (queryValues.includes(undefined)) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+
+  let queryStr = `
+  INSERT INTO reviews
+  (title, designer, owner, review_body, category`;
+
+  if (review_img_url) {
+    queryStr += `, review_img_url`;
+    queryValues.push(review_img_url);
+  }
+  console.log(requestBody, "<<<keys");
+  console.log(queryValues, "<<<accepted keys");
+  if (
+    Object.keys(requestBody).includes("review_img_url") &&
+    Object.keys(requestBody).length !== 6
+  ) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+  if (
+    !Object.keys(requestBody).includes("review_img_url") &&
+    Object.keys(requestBody).length !== 5
+  ) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+
+  //   })
+  // ) {
+  //   return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  // }
+
+  queryStr += `)
+  VALUES
+  %L
+  RETURNING *, 0 AS comment_count;
+  ;`;
+
+  queryStr = format(queryStr, [queryValues]);
+  return db.query(queryStr).then(({ rows: [row] }) => {
+    return row;
+  });
 };
