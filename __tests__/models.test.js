@@ -723,6 +723,7 @@ describe("PATCH /api/comments/:comment_id", () => {
     });
   });
 });
+
 describe("POST /api/reviews", () => {
   test("201: responds with an object with all the correct keys", () => {
     const reviewRequestBody = {
@@ -800,33 +801,141 @@ describe("POST /api/reviews", () => {
           });
       });
   });
-  // test("201: review_img_url is given default url if not stated", () => {
-  //   const reviewRequestBody = {
-  //     owner: "philippaclaire9",
-  //     title: "Catan",
-  //     review_body:
-  //       "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
-  //     designer: "Klaus Teuber",
-  //     category: "children's games",
-  //   };
-  //   return request(app)
-  //     .post("/api/reviews")
-  //     .send(reviewRequestBody)
-  //     .expect(201)
-  //     .then(({ body: { review } }) => {
-  //       expect(review).toHaveProperty(
-  //         "review_img_url",
-  //         "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?w=700&h=700"
-  //       );
-  //     });
-  // });
+  test("201: review_img_url is given default url if not stated", () => {
+    const reviewRequestBody = {
+      owner: "philippaclaire9",
+      title: "Catan",
+      review_body:
+        "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+      designer: "Klaus Teuber",
+      category: "children's games",
+    };
+    return request(app)
+      .post("/api/reviews")
+      .send(reviewRequestBody)
+      .expect(201)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?w=700&h=700"
+        );
+      });
+  });
+
   describe("Error Handling:", () => {
-    //owner doesn't exist
-    //malformed body
-    //PSQL incorrect data types handled
-    //only accepts certain keys
-    //doesn't accept excess keys
-    //not null constraint
-    // prevents sql injection
+    test("404: not a valid owner", () => {
+      const reviewRequestBody = {
+        owner: "EddTheDuck",
+        title: "Catan",
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        designer: "Klaus Teuber",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+    test("400: malformed body", () => {
+      const reviewRequestBody = {
+        owner: "philippaClaire9",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: malformed body", () => {
+      const reviewRequestBody = {
+        owner: "philippaClaire9",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only accepts certain keys", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        comment: "I like this game",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: does not accept any excess keys in the body (wihtout review_img_url)", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        designer: "Klaus Teuber",
+        comment: "I like this game",
+        category: "children's games",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: does not accept any excess keys in the body, (with review_img_url)", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        review_body:
+          "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!",
+        designer: "Klaus Teuber",
+        comment: "I like this game",
+        category: "children's games",
+        review_img_url: "http://",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: all NOT NULL columns are fulfilled", () => {
+      const reviewRequestBody = {
+        owner: "philippaclaire9",
+        title: 5,
+        designer: "Klaus Teuber",
+        comment: "I like this game",
+        category: "children's games",
+        review_img_url: "http://",
+      };
+      return request(app)
+        .post("/api/reviews")
+        .send(reviewRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
   });
 });
