@@ -53,7 +53,7 @@ describe("GET /api/reviews", () => {
       .expect(200)
       .then(({ body: { reviews } }) => {
         expect(reviews).toBeInstanceOf(Array);
-        expect(reviews).toHaveLength(13);
+        expect(reviews).toHaveLength(10);
       });
   });
   test("200: resolves with an array with the correct keys", () => {
@@ -106,7 +106,7 @@ describe("GET /api/reviews", () => {
           .get("/api/reviews?category=social deduction")
           .expect(200)
           .then(({ body: { reviews } }) => {
-            expect(reviews).toHaveLength(11);
+            expect(reviews).toHaveLength(10);
             reviews.forEach((review) => {
               expect(review).toHaveProperty("category", "social deduction");
             });
@@ -188,6 +188,70 @@ describe("GET /api/reviews", () => {
         });
       });
     });
+    describe("limit", () => {
+      test("200: accepts a limit query", () => {
+        return request(app)
+          .get("/api/reviews?limit=2")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(2);
+          });
+      });
+      test("200: it defaults to limit of 10", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(10);
+          });
+      });
+      describe("Error Handling:", () => {
+        test("400: limit is not a number", () => {
+          return request(app)
+            .get("/api/reviews?limit=ten")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request");
+            });
+        });
+      });
+    });
+    describe("p", () => {
+      test("200: accepts a page query", () => {
+        return request(app)
+          .get("/api/reviews?p=2")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(3);
+          });
+      });
+      test("200: page 1 shows by default", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toHaveLength(10);
+          });
+      });
+      describe("Error Handling:", () => {
+        // test("404: page not found", () => {
+        //   return request(app)
+        //     .get("/api/reviews?p=10")
+        //     .expect(404)
+        //     .then(({ body: { msg } }) => {
+        //       expect(msg).toBe("No Content Found");
+        //     });
+        // });
+        test("400: page not valid", () => {
+          return request(app)
+            .get("/api/reviews?p=five")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request");
+            });
+        });
+      });
+    });
     describe("multiple queries", () => {
       test("able to take multiple queries", () => {
         return request(app)
@@ -197,7 +261,7 @@ describe("GET /api/reviews", () => {
           .expect(200)
           .then(({ body: { reviews } }) => {
             expect(reviews).toBeSortedBy("title");
-            expect(reviews).toHaveLength(11);
+            expect(reviews).toHaveLength(10);
             reviews.forEach((review) => {
               expect(review).toHaveProperty("category", "social deduction");
             });
@@ -797,7 +861,7 @@ describe("POST /api/reviews", () => {
           .get("/api/reviews")
           .expect(200)
           .then(({ body: { reviews } }) => {
-            expect(reviews).toHaveLength(14);
+            expect(reviews).toHaveLength(10);
           });
       });
   });

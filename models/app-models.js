@@ -13,7 +13,9 @@ exports.fetchReviews = (
   category,
   sort_by = "created_at",
   order_by = "DESC",
-  categories
+  categories,
+  limit = 10,
+  p = 1
 ) => {
   const acceptedCategories = categories.map((category) => {
     return category.slug;
@@ -27,7 +29,7 @@ exports.fetchReviews = (
     "votes",
   ];
 
-  let queryValues = [];
+  let queryValues = [limit, limit * (p - 1)];
 
   if (!acceptedSort_by.includes(sort_by)) {
     return Promise.reject({
@@ -44,7 +46,10 @@ exports.fetchReviews = (
   }
 
   let queryStr = `
-  SELECT reviews.*, CAST(COUNT(comments.review_id) AS INT) AS comment_count
+  SELECT 
+  reviews.*,
+  CAST(COUNT(comments.review_id) AS INT) AS comment_count,
+  CAST(COUNT(reviews.review_id) AS INT) AS total_count
   FROM reviews
   LEFT JOIN comments 
   ON comments.review_id = reviews.review_id 
@@ -57,14 +62,15 @@ exports.fetchReviews = (
         msg: "Category Not Found",
       });
     }
-    queryStr += `WHERE category = $1 `;
+    queryStr += `WHERE category = $3 `;
     queryValues.push(category);
   }
 
   queryStr += `
   GROUP BY reviews.review_id
-  ORDER BY reviews.${sort_by} ${order_by};
-  `;
+  ORDER BY reviews.${sort_by} ${order_by}
+  OFFSET $2 ROWS FETCH NEXT $1 ROWS ONLY
+  ;`;
 
   return db.query(queryStr, queryValues).then(({ rows }) => {
     return rows;

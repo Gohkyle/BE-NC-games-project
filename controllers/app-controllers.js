@@ -22,10 +22,10 @@ exports.getCategories = (request, response, next) => {
 };
 
 exports.getReviews = (request, response, next) => {
-  const { category, sort_by, order_by } = request.query;
+  const { category, sort_by, order_by, limit, p } = request.query;
   fetchCategories()
     .then((categories) => {
-      return fetchReviews(category, sort_by, order_by, categories);
+      return fetchReviews(category, sort_by, order_by, categories, limit, p);
     })
     .then((reviews) => {
       response.status(200).send({ reviews });
