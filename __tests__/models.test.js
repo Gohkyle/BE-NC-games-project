@@ -252,8 +252,8 @@ describe("GET /api/reviews", () => {
         });
       });
     });
-    describe("multiple queries", () => {
-      test("able to take multiple queries", () => {
+    describe("other:", () => {
+      test("200: able to take multiple queries", () => {
         return request(app)
           .get(
             "/api/reviews?category=social deduction&order_by=asc&sort_by=title"
@@ -264,6 +264,26 @@ describe("GET /api/reviews", () => {
             expect(reviews).toHaveLength(10);
             reviews.forEach((review) => {
               expect(review).toHaveProperty("category", "social deduction");
+            });
+          });
+      });
+      test("200: has a total_count property, displaying the number of reviews ignoring the limit", () => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("total_count", 13);
+            });
+          });
+      });
+      test("200: has a total_count property, displaying the number of reviews with any filter ignoring the limit", () => {
+        return request(app)
+          .get("/api/reviews?category=social deduction")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            reviews.forEach((review) => {
+              expect(review).toHaveProperty("total_count", 11);
             });
           });
       });

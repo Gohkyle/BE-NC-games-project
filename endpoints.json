@@ -34,6 +34,34 @@
       ]
     }
   },
+  "POST /api/reviews": {
+    "description": "serves an array of all reviews",
+    "queries": ["category", "sort_by", "order"],
+    "exampleBody": {
+      "title": "One Night Ultimate Werewolf",
+      "designer": "Akihisa Okui",
+      "owner": "happyamy2016",
+      "review_body": "We couldn't find the werewolf!",
+      "review_img_url": "https://images.pexels.com/photos/5350049/pexels-photo-5350049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
+      "category": "hidden-roles"
+    },
+    "exampleResponse": {
+      "review": [
+        {
+          "review_id": 3,
+          "title": "One Night Ultimate Werewolf",
+          "designer": "Akihisa Okui",
+          "owner": "happyamy2016",
+          "review_body": "We couldn't find the werewolf!",
+          "review_img_url": "https://images.pexels.com/photos/5350049/pexels-photo-5350049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
+          "category": "hidden-roles",
+          "created_at": 1610964101251,
+          "votes": 0,
+          "comment_count": 0
+        }
+      ]
+    }
+  },
   "GET /api/reviews/:review_id": {
     "description": "serves a review object requested in the endpoint",
     "queries": [],
@@ -100,5 +128,29 @@
     "description": "removes rows with the given comment_id from the database",
     "queries": [],
     "exampleResponse": {}
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "takes a number, updates the votes for the review_id, serves the updated row",
+    "queries": [],
+    "exampleBody": {
+      "inc_votes": 5
+    },
+    "exampleResponse": {
+      "comment_id": 5,
+      "body": "Quis duis mollit ad enim deserunt.",
+      "votes": 3,
+      "author": "jessjelly",
+      "review_id": 3,
+      "created_at": "2021-01-18T10:01:41.251Z"
+    }
+  },
+  "GET /api/users/:username": {
+    "description": "serves up an object of the request user in the parametric endpoint",
+    "queries": [],
+    "exampleResponse": {
+      "username": "philippaclaire9",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4",
+      "name": "philippa"
+    }
   }
 }

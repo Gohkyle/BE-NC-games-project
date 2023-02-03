@@ -49,7 +49,7 @@ exports.fetchReviews = (
   SELECT 
   reviews.*,
   CAST(COUNT(comments.review_id) AS INT) AS comment_count,
-  CAST(COUNT(reviews.review_id) AS INT) AS total_count
+  CAST(COUNT(*) OVER() AS INT) AS total_count
   FROM reviews
   LEFT JOIN comments 
   ON comments.review_id = reviews.review_id 
