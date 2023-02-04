@@ -291,523 +291,6 @@ describe("GET /api/reviews", () => {
   });
 });
 
-describe("GET /api/reviews/:review_id", () => {
-  test("200: resolves with a review object with all the correct keys and values", () => {
-    return request(app)
-      .get("/api/reviews/2")
-      .expect(200)
-      .then(({ body: { review } }) => {
-        expect(review).toHaveProperty("review_id", 2);
-        expect(review).toHaveProperty("title", "Jenga");
-        expect(review).toHaveProperty(
-          "review_body",
-          "Fiddly fun for all the family"
-        );
-        expect(review).toHaveProperty("designer", "Leslie Scott");
-        expect(review).toHaveProperty(
-          "review_img_url",
-          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
-        );
-        expect(review).toHaveProperty("votes", 5);
-        expect(review).toHaveProperty("category", "dexterity");
-        expect(review).toHaveProperty("owner", "philippaclaire9");
-        expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
-      });
-  });
-  test("200: also resolves with a comment_count key, with correct value", () => {
-    return request(app)
-      .get("/api/reviews/2")
-      .expect(200)
-      .then(({ body: { review } }) => {
-        expect(review).toHaveProperty("comment_count", 3);
-      });
-  });
-  describe("ErrorHandlers:", () => {
-    test("404: Not Found for IDs that do not exist", () => {
-      return request(app)
-        .get("/api/reviews/99999")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
-        });
-    });
-    test("400: Bad request for invalid ID data types", () => {
-      return request(app)
-        .get("/api/reviews/nine")
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-  });
-});
-
-describe("GET /api/reviews/:review_id/comments", () => {
-  test("200: resolves with an array of comments for the given review_id", () => {
-    return request(app)
-      .get("/api/reviews/2/comments")
-      .expect(200)
-      .then(({ body: { comments } }) => {
-        expect(comments).toBeInstanceOf(Array);
-
-        expect(comments).toHaveLength(3);
-
-        comments.forEach((comment) => {
-          expect(comment.review_id).toBe(2);
-        });
-      });
-  });
-  test("200: resolves with an comment objects with the correct keys", () => {
-    return request(app)
-      .get("/api/reviews/2/comments")
-      .expect(200)
-      .then(({ body: { comments } }) => {
-        comments.forEach((comment) => {
-          expect(comment).toHaveProperty("comment_id");
-          expect(comment).toHaveProperty("votes");
-          expect(comment).toHaveProperty("created_at");
-          expect(comment).toHaveProperty("author");
-          expect(comment).toHaveProperty("body");
-          expect(comment).toHaveProperty("review_id");
-        });
-      });
-  });
-  test("200: comments are ordered in most recent first, descending?", () => {
-    return request(app)
-      .get("/api/reviews/2/comments")
-      .expect(200)
-      .then(({ body: { comments } }) => {
-        expect(comments).toBeSortedBy("created_at", { descending: true });
-      });
-  });
-  test("200: reviews with no comments should respond with an empty array", () => {
-    return request(app)
-      .get("/api/reviews/1/comments")
-      .expect(200)
-      .then(({ body: { comments } }) => {
-        expect(comments).toEqual([]);
-      });
-  });
-  describe("Error Handlers", () => {
-    test("400: Bad Request, for invalid review _id", () => {
-      return request(app)
-        .get("/api/reviews/99999/comments")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
-        });
-    });
-    test("404: Not Found, for review_id does not exist", () => {
-      return request(app)
-        .get("/api/reviews/two/comments")
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-  });
-});
-
-describe("POST /api/reviews/:review_id/comments", () => {
-  test("201: post request responds with the comment", () => {
-    const commentBody = { username: "philippaclaire9", body: "Hello" };
-
-    return request(app)
-      .post("/api/reviews/1/comments")
-      .send(commentBody)
-      .expect(201)
-      .then(({ body: { postedComment } }) => {
-        expect(postedComment).toBe("Hello");
-      });
-  });
-  test("200: database has a new entry", () => {
-    const commentBody = { username: "philippaclaire9", body: "Hello" };
-
-    return request(app)
-      .post("/api/reviews/1/comments")
-      .send(commentBody)
-      .then(() => {
-        return request(app)
-          .get("/api/reviews/1/comments")
-          .expect(200)
-          .then(({ body: { comments } }) => {
-            expect(comments).toHaveLength(1);
-            expect(comments[0]).toHaveProperty("author", "philippaclaire9");
-            expect(comments[0]).toHaveProperty("body", "Hello");
-            expect(comments[0]).toHaveProperty("comment_id", 7);
-            expect(comments[0]).toHaveProperty("review_id", 1);
-            expect(comments[0]).toHaveProperty("created_at");
-          });
-      });
-  });
-  describe("Error Handlers:", () => {
-    test("400: malformed request body (23502)", () => {
-      const commentBody = { username: "philippaclaire9" };
-
-      return request(app)
-        .post("/api/reviews/1/comments")
-        .send(commentBody)
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    //Test passes via non 23502 handling
-    test("404: username not recognised (23503)", () => {
-      commentBody = { username: "EddTheDuck", body: "Quack" };
-
-      return request(app)
-        .post("/api/reviews/1/comments")
-        .send(commentBody)
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Username Not Found");
-        });
-    });
-    test("404: review_id does not exist", () => {
-      const commentBody = { username: "philippaclaire9", body: "Hello" };
-      return request(app)
-        .post("/api/reviews/99999/comments")
-        .send(commentBody)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
-        });
-    });
-    test("400: invalid data type for review_id", () => {
-      const commentBody = { username: "philippaclaire9", body: "Hello" };
-      return request(app)
-        .post("/api/reviews/review/comments")
-        .send(commentBody)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    test("400: only accepts username and body for the request body", () => {
-      const commentBody = {
-        username: "philippaclaire9",
-        body: "Hello",
-        vote: 16,
-      };
-      return request(app)
-        .post("/api/reviews/1/comments")
-        .send(commentBody)
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-  });
-});
-
-describe("PATCH /api/reviews/:review_id", () => {
-  test("200: returns the updated review", () => {
-    return request(app)
-      .patch("/api/reviews/2")
-      .send({ inc_votes: 1 })
-      .expect(200)
-      .then(({ body: { updatedReview } }) => {
-        expect(updatedReview).toHaveProperty("review_id", 2);
-        expect(updatedReview).toHaveProperty("title", "Jenga");
-        expect(updatedReview).toHaveProperty("designer", "Leslie Scott");
-        expect(updatedReview).toHaveProperty("owner", "philippaclaire9");
-        expect(updatedReview).toHaveProperty(
-          "review_img_url",
-          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
-        );
-        expect(updatedReview).toHaveProperty(
-          "review_body",
-          "Fiddly fun for all the family"
-        );
-        expect(updatedReview).toHaveProperty(
-          "created_at",
-          "2021-01-18T10:01:41.251Z"
-        );
-        expect(updatedReview).toHaveProperty("votes", 6);
-      });
-  });
-  test("200: database is updated", () => {
-    return request(app)
-      .patch("/api/reviews/2")
-      .send({ inc_votes: -5 })
-      .expect(200)
-      .then(() => {
-        return request(app)
-          .get("/api/reviews/2")
-          .expect(200)
-          .then(({ body: { review } }) => {
-            expect(review).toHaveProperty("review_id", 2);
-            expect(review).toHaveProperty("votes", 0);
-          });
-      });
-  });
-  describe("Error Handlers", () => {
-    test("400: incorrect data type, vote increase is not a number", () => {
-      return request(app)
-        .patch("/api/reviews/2")
-        .send({ inc_votes: "five" })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    test("400: malformed body", () => {
-      return request(app)
-        .patch("/api/reviews/2")
-        .send({ inc_votes: "null" })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    //test passes through error handling from line 396
-    test("400: only have inc_votes", () => {
-      return request(app)
-        .patch("/api/reviews/2")
-        .send({ inc_votes: 1, owner: "it's me now" })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    test("404: review not found", () => {
-      return request(app)
-        .patch("/api/reviews/9999")
-        .send({ inc_votes: 2 })
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
-        });
-    });
-    test("400: review not valid", () => {
-      return request(app)
-        .patch("/api/reviews/five")
-        .send({ inc_votes: 2 })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-  });
-});
-
-describe("GET /api/users", () => {
-  test("200: resolves with a users array", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({ body: { users } }) => {
-        expect(users).toBeInstanceOf(Array);
-        expect(users).toHaveLength(4);
-      });
-  });
-  test("200: resolves with the correct keys", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({ body: { users } }) => {
-        users.forEach((user) => {
-          expect(user).toHaveProperty("username");
-          expect(user).toHaveProperty("name");
-          expect(user).toHaveProperty("avatar_url");
-        });
-      });
-  });
-});
-
-describe("DELETE /api/comments/:comment_id", () => {
-  test("204: responds with undefined", () => {
-    return request(app)
-      .delete("/api/comments/4")
-      .expect(204)
-      .then(({ body: { deletedComment } }) => {
-        expect(deletedComment).toBeUndefined();
-      });
-  });
-  test("404: comment is removed from database, comment not found", () => {
-    return request(app)
-      .delete("/api/comments/4")
-      .expect(204)
-      .then(() => {
-        return request(app)
-          .get("/api/reviews/2/comments")
-          .expect(200)
-          .then(({ body: { comments } }) => {
-            expect(comments).toHaveLength(2);
-
-            comments.forEach(({ comment_id }) => {
-              console.log(comment_id);
-              expect(comment_id).not.toBe(4);
-            });
-          });
-      });
-  });
-  describe("Error Handling:", () => {
-    test("400: comment_id is not valid", () => {
-      return request(app)
-        .delete("/api/comments/banana")
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    test("404: comment_id does not exist", () => {
-      return request(app)
-        .delete("/api/comments/999")
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request: Comment does not exist!");
-        });
-    });
-  });
-});
-
-describe("GET /api", () => {
-  test("200: resolves with a endpoints.json", () => {
-    return request(app)
-      .get("/api")
-      .expect(200)
-      .then(({ body: { endpoints } }) => {
-        expect(endpoints).toHaveProperty("GET /api");
-        expect(endpoints).toHaveProperty("GET /api/categories");
-        expect(endpoints).toHaveProperty("GET /api/reviews");
-        expect(endpoints).toHaveProperty("GET /api/reviews/:review_id");
-        expect(endpoints).toHaveProperty(
-          "GET /api/reviews/:review_id/comments"
-        );
-        expect(endpoints).toHaveProperty(
-          "POST /api/reviews/:review_id/comments"
-        );
-        expect(endpoints).toHaveProperty("PATCH /api/reviews/:review_id");
-        expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
-      });
-  });
-});
-
-describe("GET /api/users/:username", () => {
-  test("200: resolves with a user object with all the correct keys and values", () => {
-    return request(app)
-      .get("/api/users/philippaclaire9")
-      .expect(200)
-      .then(({ body: { user } }) => {
-        expect(user).toHaveProperty("username", "philippaclaire9");
-        expect(user).toHaveProperty("name", "philippa");
-        expect(user).toHaveProperty(
-          "avatar_url",
-          "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
-        );
-      });
-  });
-  describe("Error Handling:", () => {
-    test("404: username not found", () => {
-      return request(app)
-        .get("/api/users/EddTheDuck")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Username Not Found");
-        });
-    });
-  });
-});
-
-describe("PATCH /api/comments/:comment_id", () => {
-  test("200: returns the updated comment", () => {
-    return request(app)
-      .patch("/api/comments/2")
-      .send({ inc_votes: 1 })
-      .expect(200)
-      .then(({ body: { updatedComment } }) => {
-        console.log(updatedComment);
-        expect(updatedComment).toHaveProperty("comment_id", 2);
-        expect(updatedComment).toHaveProperty(
-          "body",
-          "My dog loved this game too!"
-        );
-        expect(updatedComment).toHaveProperty("votes", 14);
-        expect(updatedComment).toHaveProperty("author", "mallionaire");
-        expect(updatedComment).toHaveProperty("review_id", 3);
-        expect(updatedComment).toHaveProperty(
-          "created_at",
-          "2021-01-18T10:09:05.410Z"
-        );
-      });
-  });
-  test("200: the database is updated", () => {
-    return request(app)
-      .patch("/api/comments/2")
-      .send({ inc_votes: -1 })
-      .expect(200)
-      .then(() => {
-        return request(app)
-          .get("/api/reviews/3/comments")
-          .expect(200)
-          .then(({ body: { comments } }) => {
-            const commentId2 = comments.find(({ comment_id }) => {
-              return comment_id === 2;
-            });
-            expect(commentId2).toHaveProperty("comment_id", 2);
-            expect(commentId2).toHaveProperty("review_id", 3);
-            expect(commentId2).toHaveProperty("votes", 12);
-          });
-      });
-  });
-  describe("Error Handling:", () => {
-    test("404: comment_id does not exist", () => {
-      return request(app)
-        .patch("/api/comments/9999")
-        .send({ inc_votes: 1 })
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Comment Not Found");
-        });
-    });
-    test("400: comment_id is not valid", () => {
-      return request(app)
-        .patch("/api/comments/sunshine")
-        .send({ inc_votes: 1 })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-    test("400: only takes inc_votes", () => {
-      return request(app)
-        .patch("/api/comments/3")
-        .send({ body: "new content" })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request Body");
-        });
-    });
-    test("400: body only takes one key", () => {
-      return request(app)
-        .patch("/api/comments/3")
-        .send({ body: "new content", inc_votes: 1 })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request Body");
-        });
-    });
-    test("400:malformed body", () => {
-      return request(app)
-        .patch("/api/comments/3")
-        .send({})
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request Body");
-        });
-    });
-    test("400: votes is not a number", () => {
-      return request(app)
-        .patch("/api/comments/3")
-        .send({ inc_votes: "five" })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
-  });
-});
-
 describe("POST /api/reviews", () => {
   test("201: responds with an object with all the correct keys", () => {
     const reviewRequestBody = {
@@ -1019,6 +502,523 @@ describe("POST /api/reviews", () => {
         .expect(400)
         .then(({ body: { msg } }) => {
           expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("GET /api/reviews/:review_id", () => {
+  test("200: resolves with a review object with all the correct keys and values", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("review_id", 2);
+        expect(review).toHaveProperty("title", "Jenga");
+        expect(review).toHaveProperty(
+          "review_body",
+          "Fiddly fun for all the family"
+        );
+        expect(review).toHaveProperty("designer", "Leslie Scott");
+        expect(review).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
+        );
+        expect(review).toHaveProperty("votes", 5);
+        expect(review).toHaveProperty("category", "dexterity");
+        expect(review).toHaveProperty("owner", "philippaclaire9");
+        expect(review).toHaveProperty("created_at", "2021-01-18T10:01:41.251Z");
+      });
+  });
+  test("200: also resolves with a comment_count key, with correct value", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then(({ body: { review } }) => {
+        expect(review).toHaveProperty("comment_count", 3);
+      });
+  });
+  describe("ErrorHandlers:", () => {
+    test("404: Not Found for IDs that do not exist", () => {
+      return request(app)
+        .get("/api/reviews/99999")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("400: Bad request for invalid ID data types", () => {
+      return request(app)
+        .get("/api/reviews/nine")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("PATCH /api/reviews/:review_id", () => {
+  test("200: returns the updated review", () => {
+    return request(app)
+      .patch("/api/reviews/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body: { updatedReview } }) => {
+        expect(updatedReview).toHaveProperty("review_id", 2);
+        expect(updatedReview).toHaveProperty("title", "Jenga");
+        expect(updatedReview).toHaveProperty("designer", "Leslie Scott");
+        expect(updatedReview).toHaveProperty("owner", "philippaclaire9");
+        expect(updatedReview).toHaveProperty(
+          "review_img_url",
+          "https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?w=700&h=700"
+        );
+        expect(updatedReview).toHaveProperty(
+          "review_body",
+          "Fiddly fun for all the family"
+        );
+        expect(updatedReview).toHaveProperty(
+          "created_at",
+          "2021-01-18T10:01:41.251Z"
+        );
+        expect(updatedReview).toHaveProperty("votes", 6);
+      });
+  });
+  test("200: database is updated", () => {
+    return request(app)
+      .patch("/api/reviews/2")
+      .send({ inc_votes: -5 })
+      .expect(200)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/2")
+          .expect(200)
+          .then(({ body: { review } }) => {
+            expect(review).toHaveProperty("review_id", 2);
+            expect(review).toHaveProperty("votes", 0);
+          });
+      });
+  });
+  describe("Error Handlers", () => {
+    test("400: incorrect data type, vote increase is not a number", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: "five" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: malformed body", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: "null" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    //test passes through error handling from line 396
+    test("400: only have inc_votes", () => {
+      return request(app)
+        .patch("/api/reviews/2")
+        .send({ inc_votes: 1, owner: "it's me now" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("404: review not found", () => {
+      return request(app)
+        .patch("/api/reviews/9999")
+        .send({ inc_votes: 2 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("400: review not valid", () => {
+      return request(app)
+        .patch("/api/reviews/five")
+        .send({ inc_votes: 2 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("GET /api/reviews/:review_id/comments", () => {
+  test("200: resolves with an array of comments for the given review_id", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeInstanceOf(Array);
+
+        expect(comments).toHaveLength(3);
+
+        comments.forEach((comment) => {
+          expect(comment.review_id).toBe(2);
+        });
+      });
+  });
+  test("200: resolves with an comment objects with the correct keys", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        comments.forEach((comment) => {
+          expect(comment).toHaveProperty("comment_id");
+          expect(comment).toHaveProperty("votes");
+          expect(comment).toHaveProperty("created_at");
+          expect(comment).toHaveProperty("author");
+          expect(comment).toHaveProperty("body");
+          expect(comment).toHaveProperty("review_id");
+        });
+      });
+  });
+  test("200: comments are ordered in most recent first, descending?", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: reviews with no comments should respond with an empty array", () => {
+    return request(app)
+      .get("/api/reviews/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
+  describe("Error Handlers", () => {
+    test("400: Bad Request, for invalid review _id", () => {
+      return request(app)
+        .get("/api/reviews/99999/comments")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("404: Not Found, for review_id does not exist", () => {
+      return request(app)
+        .get("/api/reviews/two/comments")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("POST /api/reviews/:review_id/comments", () => {
+  test("201: post request responds with the comment", () => {
+    const commentBody = { username: "philippaclaire9", body: "Hello" };
+
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send(commentBody)
+      .expect(201)
+      .then(({ body: { postedComment } }) => {
+        expect(postedComment).toBe("Hello");
+      });
+  });
+  test("200: database has a new entry", () => {
+    const commentBody = { username: "philippaclaire9", body: "Hello" };
+
+    return request(app)
+      .post("/api/reviews/1/comments")
+      .send(commentBody)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/1/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(1);
+            expect(comments[0]).toHaveProperty("author", "philippaclaire9");
+            expect(comments[0]).toHaveProperty("body", "Hello");
+            expect(comments[0]).toHaveProperty("comment_id", 7);
+            expect(comments[0]).toHaveProperty("review_id", 1);
+            expect(comments[0]).toHaveProperty("created_at");
+          });
+      });
+  });
+  describe("Error Handlers:", () => {
+    test("400: malformed request body (23502)", () => {
+      const commentBody = { username: "philippaclaire9" };
+
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    //Test passes via non 23502 handling
+    test("404: username not recognised (23503)", () => {
+      commentBody = { username: "EddTheDuck", body: "Quack" };
+
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
+        });
+    });
+    test("404: review_id does not exist", () => {
+      const commentBody = { username: "philippaclaire9", body: "Hello" };
+      return request(app)
+        .post("/api/reviews/99999/comments")
+        .send(commentBody)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("ID Not Found");
+        });
+    });
+    test("400: invalid data type for review_id", () => {
+      const commentBody = { username: "philippaclaire9", body: "Hello" };
+      return request(app)
+        .post("/api/reviews/review/comments")
+        .send(commentBody)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only accepts username and body for the request body", () => {
+      const commentBody = {
+        username: "philippaclaire9",
+        body: "Hello",
+        vote: 16,
+      };
+      return request(app)
+        .post("/api/reviews/1/comments")
+        .send(commentBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("GET /api/users", () => {
+  test("200: resolves with a users array", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users).toBeInstanceOf(Array);
+        expect(users).toHaveLength(4);
+      });
+  });
+  test("200: resolves with the correct keys", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        users.forEach((user) => {
+          expect(user).toHaveProperty("username");
+          expect(user).toHaveProperty("name");
+          expect(user).toHaveProperty("avatar_url");
+        });
+      });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id", () => {
+  test("200: returns the updated comment", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body: { updatedComment } }) => {
+        console.log(updatedComment);
+        expect(updatedComment).toHaveProperty("comment_id", 2);
+        expect(updatedComment).toHaveProperty(
+          "body",
+          "My dog loved this game too!"
+        );
+        expect(updatedComment).toHaveProperty("votes", 14);
+        expect(updatedComment).toHaveProperty("author", "mallionaire");
+        expect(updatedComment).toHaveProperty("review_id", 3);
+        expect(updatedComment).toHaveProperty(
+          "created_at",
+          "2021-01-18T10:09:05.410Z"
+        );
+      });
+  });
+  test("200: the database is updated", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: -1 })
+      .expect(200)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/3/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            const commentId2 = comments.find(({ comment_id }) => {
+              return comment_id === 2;
+            });
+            expect(commentId2).toHaveProperty("comment_id", 2);
+            expect(commentId2).toHaveProperty("review_id", 3);
+            expect(commentId2).toHaveProperty("votes", 12);
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("404: comment_id does not exist", () => {
+      return request(app)
+        .patch("/api/comments/9999")
+        .send({ inc_votes: 1 })
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Comment Not Found");
+        });
+    });
+    test("400: comment_id is not valid", () => {
+      return request(app)
+        .patch("/api/comments/sunshine")
+        .send({ inc_votes: 1 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only takes inc_votes", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ body: "new content" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400: body only takes one key", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ body: "new content", inc_votes: 1 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400:malformed body", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({})
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request Body");
+        });
+    });
+    test("400: votes is not a number", () => {
+      return request(app)
+        .patch("/api/comments/3")
+        .send({ inc_votes: "five" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: responds with undefined", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then(({ body: { deletedComment } }) => {
+        expect(deletedComment).toBeUndefined();
+      });
+  });
+  test("404: comment is removed from database, comment not found", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews/2/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(2);
+
+            comments.forEach(({ comment_id }) => {
+              console.log(comment_id);
+              expect(comment_id).not.toBe(4);
+            });
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("400: comment_id is not valid", () => {
+      return request(app)
+        .delete("/api/comments/banana")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("404: comment_id does not exist", () => {
+      return request(app)
+        .delete("/api/comments/999")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request: Comment does not exist!");
+        });
+    });
+  });
+});
+
+describe("GET /api", () => {
+  test("200: resolves with a endpoints.json", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { endpoints } }) => {
+        expect(endpoints).toHaveProperty("GET /api");
+        expect(endpoints).toHaveProperty("GET /api/categories");
+        expect(endpoints).toHaveProperty("GET /api/reviews");
+        expect(endpoints).toHaveProperty("GET /api/reviews/:review_id");
+        expect(endpoints).toHaveProperty(
+          "GET /api/reviews/:review_id/comments"
+        );
+        expect(endpoints).toHaveProperty(
+          "POST /api/reviews/:review_id/comments"
+        );
+        expect(endpoints).toHaveProperty("PATCH /api/reviews/:review_id");
+        expect(endpoints).toHaveProperty("DELETE /api/comments/:comment_id");
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("200: resolves with a user object with all the correct keys and values", () => {
+    return request(app)
+      .get("/api/users/philippaclaire9")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toHaveProperty("username", "philippaclaire9");
+        expect(user).toHaveProperty("name", "philippa");
+        expect(user).toHaveProperty(
+          "avatar_url",
+          "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+        );
+      });
+  });
+  describe("Error Handling:", () => {
+    test("404: username not found", () => {
+      return request(app)
+        .get("/api/users/EddTheDuck")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Username Not Found");
         });
     });
   });

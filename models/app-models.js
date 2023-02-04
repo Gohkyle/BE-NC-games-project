@@ -73,6 +73,9 @@ exports.fetchReviews = (
   ;`;
 
   return db.query(queryStr, queryValues).then(({ rows }) => {
+    // if (rows.length !== 0 && p * limit - rows[0].total_count >= limit) {
+    //   return Promise.reject({ statusCode: 404, msg: "No Content Found" });
+    // }
     return rows;
   });
 };
