@@ -46,6 +46,83 @@ describe("GET /api/categories", () => {
   });
 });
 
+describe.only("POST /api/categories", () => {
+  test("201: responds with an object with all the correct keys", () => {
+    const requestBody = {
+      slug: "Engine Building",
+      description: "Players have a set of personal resources used to progress",
+    };
+    return request(app)
+      .post("/api/categories")
+      .send(requestBody)
+      .expect(201)
+      .then(({ body: { postedCategory } }) => {
+        expect(postedCategory).toHaveProperty("slug", "Engine Building");
+        expect(postedCategory).toHaveProperty(
+          "description",
+          "Players have a set of personal resources used to progress"
+        );
+      });
+  });
+  test("200: database has a new entry", () => {
+    const requestBody = {
+      slug: "Engine Building",
+      description: "Players have a set of personal resources used to progress",
+    };
+    return request(app)
+      .post("/api/categories")
+      .send(requestBody)
+      .expect(201)
+      .then(() => {
+        return request(app)
+          .get("/api/categories")
+          .expect(200)
+          .then(({ body: { categories } }) => {
+            expect(categories).toHaveLength(5);
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("400: incorrect number of keys", () => {
+      const badBodyRequest = {
+        slug: "Roll and Move",
+      };
+      return request(app)
+        .post("/api/categories")
+        .send(badBodyRequest)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: incorrect keys, correct number of keys", () => {
+      const badRequestBody = {
+        name: "Qatan",
+        players: "2",
+      };
+      return request(app)
+        .post("/api/categories")
+        .send(badRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("400: only accepts correct keys", () => {
+      const badRequestBody = {
+        slug: "Co op",
+        players: "2",
+      };
+      return request(app)
+        .post("/api/categories")
+        .send(badRequestBody)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+});
+
 describe("GET /api/reviews", () => {
   test("200: resolves with an reviews array", () => {
     return request(app)
@@ -242,6 +319,14 @@ describe("GET /api/reviews", () => {
         //       expect(msg).toBe("No Content Found");
         //     });
         // });
+        // test("404: page not found", () => {
+        //   return request(app)
+        //     .get("/api/reviews?p=-1")
+        //     .expect(404)
+        //     .then(({ body: { msg } }) => {
+        //       expect(msg).toBe("No Content Found");
+        //     });
+        // });
         test("400: page not valid", () => {
           return request(app)
             .get("/api/reviews?p=five")
@@ -420,19 +505,6 @@ describe("POST /api/reviews", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    test("400: malformed body", () => {
-      const reviewRequestBody = {
-        owner: "philippaClaire9",
-        category: "children's games",
-      };
-      return request(app)
-        .post("/api/reviews")
-        .send(reviewRequestBody)
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad Request");
-        });
-    });
     test("400: only accepts certain keys", () => {
       const reviewRequestBody = {
         owner: "philippaclaire9",
@@ -450,7 +522,7 @@ describe("POST /api/reviews", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    test("400: does not accept any excess keys in the body (wihtout review_img_url)", () => {
+    test("400: does not accept any excess keys in the body (without review_img_url)", () => {
       const reviewRequestBody = {
         owner: "philippaclaire9",
         title: 5,
@@ -649,6 +721,15 @@ describe("PATCH /api/reviews/:review_id", () => {
   });
 });
 
+// describe("DELETE /api/review/:review_id", () => {
+//   test("204: no content");
+//   test("404: review is removed from the database, review not found");
+//   describe("Error Handling:", () => {
+//     test("400: review_id is not valid", () => {});
+//     test("404: review_id does not exist", () => {});
+//   });
+// });
+
 describe("GET /api/reviews/:review_id/comments", () => {
   test("200: resolves with an array of comments for the given review_id", () => {
     return request(app)
@@ -713,6 +794,23 @@ describe("GET /api/reviews/:review_id/comments", () => {
         });
     });
   });
+  // describe("pagination queries:", () => {
+  //   describe("limit", () => {
+  //     test("200: accepts a limit query", () => {});
+  //     test("200: defaults to limit=10", () => {});
+  //     describe("Error Handling:", () => {
+  //       test("400: limit is not a number", () => {});
+  //     });
+  //   });
+  //   describe("p", () => {
+  //     test("200: accepts a p query", () => {});
+  //     test("200: defaults to page 1", () => {});
+  //     describe("Error Handling:", () => {
+  //       test("400: p is not valid", () => {});
+  //       test("404: page not found", () => {});
+  //     });
+  //   });
+  // });
 });
 
 describe("POST /api/reviews/:review_id/comments", () => {

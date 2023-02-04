@@ -11,6 +11,7 @@ const {
   fetchUsersByUserId,
   updateCommentVote,
   addReview,
+  addCategory,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -126,6 +127,15 @@ exports.postReview = (request, response, next) => {
   addReview(requestBody)
     .then((review) => {
       response.status(201).send({ review });
+    })
+    .catch(next);
+};
+
+exports.postCategory = (request, response, next) => {
+  const requestBody = request.body;
+  addCategory(requestBody)
+    .then((postedCategory) => {
+      response.status(201).send({ postedCategory });
     })
     .catch(next);
 };

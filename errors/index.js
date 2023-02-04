@@ -9,6 +9,7 @@ exports.handleCustomErrors = (error, request, response, next) => {
 };
 
 exports.handlePsqlErrors = (error, request, response, next) => {
+  //incorrect data type
   if (error.code === "22P02") {
     response.status(400).send({ msg: "Bad Request" });
   }

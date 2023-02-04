@@ -268,3 +268,28 @@ exports.addReview = (requestBody) => {
     return row;
   });
 };
+
+exports.addCategory = (requestBody) => {
+  const { slug, description } = requestBody;
+
+  if (Object.keys(requestBody).length !== 2) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+  const queryStr = `
+  INSERT INTO categories
+    (slug, description)
+    VALUES
+    ($1, $2)
+    RETURNING *
+    ;`;
+
+  const queryValues = [slug, description];
+
+  if (queryValues.includes(undefined)) {
+    return Promise.reject({ statusCode: 400, msg: "Bad Request" });
+  }
+
+  return db.query(queryStr, queryValues).then(({ rows: [row] }) => {
+    return row;
+  });
+};
