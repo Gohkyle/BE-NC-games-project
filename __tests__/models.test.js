@@ -46,7 +46,7 @@ describe("GET /api/categories", () => {
   });
 });
 
-describe.only("POST /api/categories", () => {
+describe("POST /api/categories", () => {
   test("201: responds with an object with all the correct keys", () => {
     const requestBody = {
       slug: "Engine Building",
@@ -83,7 +83,7 @@ describe.only("POST /api/categories", () => {
       });
   });
   describe("Error Handling:", () => {
-    test("400: incorrect number of keys", () => {
+    test("400: malformed body incorrect number of keys", () => {
       const badBodyRequest = {
         slug: "Roll and Move",
       };
@@ -95,7 +95,8 @@ describe.only("POST /api/categories", () => {
           expect(msg).toBe("Bad Request");
         });
     });
-    test("400: incorrect keys, correct number of keys", () => {
+
+    test("400: has correct number of keys, but incorrect keys,", () => {
       const badRequestBody = {
         name: "Qatan",
         players: "2",
@@ -121,8 +122,8 @@ describe.only("POST /api/categories", () => {
           expect(msg).toBe("Bad Request");
         });
     });
+  });
 });
-
 describe("GET /api/reviews", () => {
   test("200: resolves with an reviews array", () => {
     return request(app)
