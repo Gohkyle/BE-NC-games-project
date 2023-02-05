@@ -12,6 +12,7 @@ const {
   updateCommentVote,
   addReview,
   addCategory,
+  removeReview,
 } = require("../models/app-models");
 
 exports.getCategories = (request, response, next) => {
@@ -45,9 +46,10 @@ exports.getReviewsByReviewId = (request, response, next) => {
 
 exports.getCommentsByReviewId = (request, response, next) => {
   const { review_id } = request.params;
+  const { limit, p } = request.query;
   fetchReviewsByReviewId(review_id)
     .then(() => {
-      return fetchCommentsByReviewId(review_id);
+      return fetchCommentsByReviewId(review_id, limit, p);
     })
     .then((comments) => {
       response.status(200).send({ comments });
@@ -136,6 +138,18 @@ exports.postCategory = (request, response, next) => {
   addCategory(requestBody)
     .then((postedCategory) => {
       response.status(201).send({ postedCategory });
+    })
+    .catch(next);
+};
+
+exports.deleteReview = (request, response, next) => {
+  const { review_id } = request.params;
+  fetchReviewsByReviewId(review_id)
+    .then(() => {
+      return removeReview(review_id);
+    })
+    .then((content) => {
+      response.status(204).send(content);
     })
     .catch(next);
 };

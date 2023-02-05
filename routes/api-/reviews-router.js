@@ -7,11 +7,15 @@ const {
   postCommentOnReviewId,
   patchReview,
   postReview,
+  deleteReview,
 } = require("../../controllers/app-controllers");
 
 reviewsRouter.route("/").get(getReviews).post(postReview);
 
-reviewsRouter.get("/:review_id", getReviewsByReviewId);
+reviewsRouter
+  .route("/:review_id")
+  .get(getReviewsByReviewId)
+  .delete(deleteReview);
 
 reviewsRouter
   .route("/:review_id/comments")

@@ -124,6 +124,7 @@ describe("POST /api/categories", () => {
     });
   });
 });
+
 describe("GET /api/reviews", () => {
   test("200: resolves with an reviews array", () => {
     return request(app)
@@ -131,7 +132,9 @@ describe("GET /api/reviews", () => {
       .expect(200)
       .then(({ body: { reviews } }) => {
         expect(reviews).toBeInstanceOf(Array);
-        expect(reviews).toHaveLength(10);
+        reviews.forEach((review) => {
+          expect(review).toHaveProperty("total_count", 13);
+        });
       });
   });
   test("200: resolves with an array with the correct keys", () => {
@@ -187,6 +190,7 @@ describe("GET /api/reviews", () => {
             expect(reviews).toHaveLength(10);
             reviews.forEach((review) => {
               expect(review).toHaveProperty("category", "social deduction");
+              expect(review).toHaveProperty("total_count", 11);
             });
           });
       });
@@ -309,25 +313,10 @@ describe("GET /api/reviews", () => {
           .expect(200)
           .then(({ body: { reviews } }) => {
             expect(reviews).toHaveLength(10);
+            expect(reviews[0].review_id).toBeLessThan(11);
           });
       });
       describe("Error Handling:", () => {
-        // test("404: page not found", () => {
-        //   return request(app)
-        //     .get("/api/reviews?p=10")
-        //     .expect(404)
-        //     .then(({ body: { msg } }) => {
-        //       expect(msg).toBe("No Content Found");
-        //     });
-        // });
-        // test("404: page not found", () => {
-        //   return request(app)
-        //     .get("/api/reviews?p=-1")
-        //     .expect(404)
-        //     .then(({ body: { msg } }) => {
-        //       expect(msg).toBe("No Content Found");
-        //     });
-        // });
         test("400: page not valid", () => {
           return request(app)
             .get("/api/reviews?p=five")
@@ -451,6 +440,7 @@ describe("POST /api/reviews", () => {
           .expect(200)
           .then(({ body: { reviews } }) => {
             expect(reviews).toHaveLength(10);
+            expect;
           });
       });
   });
@@ -617,7 +607,7 @@ describe("GET /api/reviews/:review_id", () => {
         .get("/api/reviews/99999")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
+          expect(msg).toBe("Review Not Found");
         });
     });
     test("400: Bad request for invalid ID data types", () => {
@@ -707,7 +697,7 @@ describe("PATCH /api/reviews/:review_id", () => {
         .send({ inc_votes: 2 })
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
+          expect(msg).toBe("Review Not Found");
         });
     });
     test("400: review not valid", () => {
@@ -722,14 +712,51 @@ describe("PATCH /api/reviews/:review_id", () => {
   });
 });
 
-// describe("DELETE /api/review/:review_id", () => {
-//   test("204: no content");
-//   test("404: review is removed from the database, review not found");
-//   describe("Error Handling:", () => {
-//     test("400: review_id is not valid", () => {});
-//     test("404: review_id does not exist", () => {});
-//   });
-// });
+describe("DELETE /api/reviews/:review_id", () => {
+  test("204: no content", () => {
+    return request(app)
+      .delete("/api/reviews/5")
+      .expect(204)
+      .then(({ body }) => {
+        console.log({ body });
+        expect(body).toEqual({});
+      });
+  });
+  test("404: review is removed from the database, review not found", () => {
+    return request(app)
+      .delete("/api/reviews/5")
+      .expect(204)
+      .then(() => {
+        return request(app)
+          .get("/api/reviews")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            reviews.forEach(({ review_id, total_count }) => {
+              expect(review_id).not.toBe(5);
+              expect(total_count).toBe(12);
+            });
+          });
+      });
+  });
+  describe("Error Handling:", () => {
+    test("400: review_id is not valid", () => {
+      return request(app)
+        .delete("/api/reviews/monopoly")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad Request");
+        });
+    });
+    test("404: review_id does not exist", () => {
+      return request(app)
+        .delete("/api/reviews/1000")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Review Not Found");
+        });
+    });
+  });
+});
 
 describe("GET /api/reviews/:review_id/comments", () => {
   test("200: resolves with an array of comments for the given review_id", () => {
@@ -783,7 +810,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/99999/comments")
         .expect(404)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
+          expect(msg).toBe("Review Not Found");
         });
     });
     test("404: Not Found, for review_id does not exist", () => {
@@ -795,23 +822,86 @@ describe("GET /api/reviews/:review_id/comments", () => {
         });
     });
   });
-  // describe("pagination queries:", () => {
-  //   describe("limit", () => {
-  //     test("200: accepts a limit query", () => {});
-  //     test("200: defaults to limit=10", () => {});
-  //     describe("Error Handling:", () => {
-  //       test("400: limit is not a number", () => {});
-  //     });
-  //   });
-  //   describe("p", () => {
-  //     test("200: accepts a p query", () => {});
-  //     test("200: defaults to page 1", () => {});
-  //     describe("Error Handling:", () => {
-  //       test("400: p is not valid", () => {});
-  //       test("404: page not found", () => {});
-  //     });
-  //   });
-  // });
+  describe("pagination queries:", () => {
+    describe("limit", () => {
+      test("200: accepts a limit query", () => {
+        return request(app)
+          .get("/api/reviews/2/comments?limit=2")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(2);
+          });
+      });
+      test("200: limit is optional, (defaults to 10)", () => {
+        return request(app)
+          .get("/api/reviews/2/comments")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(3);
+          });
+      });
+      describe("Error Handling:", () => {
+        test("400: limit is not a number", () => {
+          return request(app)
+            .get("/api/reviews/2/comments?limit=three")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request");
+            });
+        });
+        test("400: limit is a positive value", () => {
+          return request(app)
+            .get("/api/reviews/2/comments?limit=-1")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: LIMIT must not be negative");
+            });
+        });
+        test("400: limit is an integer", () => {
+          return request(app)
+            .get("/api/reviews/2/comments?limit=1.5")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request");
+            });
+        });
+      });
+    });
+    describe("p", () => {
+      test("200: accepts a p query", () => {
+        return request(app)
+          .get("/api/reviews/2/comments?limit=2&p=2")
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments).toHaveLength(1);
+          });
+      });
+      test("200: defaults to page 1", () => {
+        return request(app)
+          .get("/api/reviews/2/comments?limit=1")
+          .expect(200)
+          .then(
+            ({
+              body: {
+                comments: [row],
+              },
+            }) => {
+              expect(row).toHaveProperty("comment_id", 5);
+            }
+          );
+      });
+      describe("Error Handling:", () => {
+        test("400: p is not valid", () => {
+          return request(app)
+            .get("/api/reviews/2/comments?p=seven")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request");
+            });
+        });
+      });
+    });
+  });
 });
 
 describe("POST /api/reviews/:review_id/comments", () => {
@@ -876,7 +966,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
         .post("/api/reviews/99999/comments")
         .send(commentBody)
         .then(({ body: { msg } }) => {
-          expect(msg).toBe("ID Not Found");
+          expect(msg).toBe("Review Not Found");
         });
     });
     test("400: invalid data type for review_id", () => {
@@ -936,7 +1026,6 @@ describe("PATCH /api/comments/:comment_id", () => {
       .send({ inc_votes: 1 })
       .expect(200)
       .then(({ body: { updatedComment } }) => {
-        console.log(updatedComment);
         expect(updatedComment).toHaveProperty("comment_id", 2);
         expect(updatedComment).toHaveProperty(
           "body",
@@ -1049,7 +1138,6 @@ describe("DELETE /api/comments/:comment_id", () => {
             expect(comments).toHaveLength(2);
 
             comments.forEach(({ comment_id }) => {
-              console.log(comment_id);
               expect(comment_id).not.toBe(4);
             });
           });

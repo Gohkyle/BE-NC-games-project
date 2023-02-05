@@ -24,6 +24,12 @@ exports.handlePsqlErrors = (error, request, response, next) => {
   if (error.code === "42703") {
     //column does not exist
     response.status(400).send({ msg: "Bad Request: Column does not exist!" });
+  }
+  if (error.code === "2201W") {
+    //LIMIT must not be negative
+    response
+      .status(400)
+      .send({ msg: "Bad Request: LIMIT must not be negative" });
   } else next(error);
 };
 

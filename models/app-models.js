@@ -1,6 +1,7 @@
 const db = require("../db/connection");
 const fs = require("fs/promises");
 const format = require("pg-format");
+const { Console } = require("console");
 
 exports.fetchCategories = () => {
   const queryStr = `SELECT * FROM categories;`;
@@ -73,9 +74,6 @@ exports.fetchReviews = (
   ;`;
 
   return db.query(queryStr, queryValues).then(({ rows }) => {
-    // if (rows.length !== 0 && p * limit - rows[0].total_count >= limit) {
-    //   return Promise.reject({ statusCode: 404, msg: "No Content Found" });
-    // }
     return rows;
   });
 };
@@ -92,20 +90,23 @@ exports.fetchReviewsByReviewId = (reviewId) => {
 
   return db.query(queryStr, [reviewId]).then(({ rows: [row] }) => {
     if (!row) {
-      return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
+      return Promise.reject({ statusCode: 404, msg: "Review Not Found" });
     }
     return row;
   });
 };
 
-exports.fetchCommentsByReviewId = (review_id) => {
+exports.fetchCommentsByReviewId = (review_id, limit = 10, p = 1) => {
+  const queryValues = [review_id, limit, limit * (p - 1)];
+
   const queryStr = `
         SELECT * FROM comments
         WHERE review_id = $1
         ORDER BY created_at DESC
+        OFFSET $3 ROWS FETCH NEXT $2 ROWS ONLY
     ;`;
 
-  return db.query(queryStr, [review_id]).then(({ rows }) => {
+  return db.query(queryStr, queryValues).then(({ rows }) => {
     return rows;
   });
 };
@@ -144,7 +145,7 @@ exports.updateReviewVote = (review_id, updates) => {
       .query(queryStr, [updates.inc_votes, review_id])
       .then(({ rows: [row] }) => {
         if (!row) {
-          return Promise.reject({ statusCode: 404, msg: "ID Not Found" });
+          return Promise.reject({ statusCode: 404, msg: "Review Not Found" });
         }
         return row;
       });
@@ -291,5 +292,17 @@ exports.addCategory = (requestBody) => {
 
   return db.query(queryStr, queryValues).then(({ rows: [row] }) => {
     return row;
+  });
+};
+
+exports.removeReview = (review_id) => {
+  const queryStr = `
+    DELETE FROM reviews
+    WHERE review_id = $1
+    RETURNING *
+  ;`;
+
+  return db.query(queryStr, [review_id]).then((response) => {
+    return response;
   });
 };
