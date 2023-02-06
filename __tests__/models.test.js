@@ -325,6 +325,22 @@ describe("GET /api/reviews", () => {
               expect(msg).toBe("Bad Request");
             });
         });
+        test("400: p only takes positive values", () => {
+          return request(app)
+            .get("/api/reviews?p=-1")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Bad Request: OFFSET must not be negative");
+            });
+        });
+        // test("400: p only takes integers", () => {
+        //   return request(app)
+        //     .get("/api/reviews?p=3.5")
+        //     .expect(400)
+        //     .then(({ body: { msg } }) => {
+        //       expect(msg).toBe("Bad Request");
+        //     });
+        // });
       });
     });
     describe("other:", () => {

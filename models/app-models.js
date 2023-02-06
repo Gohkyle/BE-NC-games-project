@@ -1,7 +1,6 @@
 const db = require("../db/connection");
 const fs = require("fs/promises");
 const format = require("pg-format");
-const { Console } = require("console");
 
 exports.fetchCategories = () => {
   const queryStr = `SELECT * FROM categories;`;

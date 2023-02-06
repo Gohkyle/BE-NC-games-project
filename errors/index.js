@@ -30,6 +30,12 @@ exports.handlePsqlErrors = (error, request, response, next) => {
     response
       .status(400)
       .send({ msg: "Bad Request: LIMIT must not be negative" });
+  }
+  if (error.code === "2201X") {
+    //OFFSET must not be negative
+    response
+      .status(400)
+      .send({ msg: "Bad Request: OFFSET must not be negative" });
   } else next(error);
 };
 
