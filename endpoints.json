@@ -14,9 +14,21 @@
       ]
     }
   },
+  "POST /api/categories": {
+    "description": "creates a new category",
+    "queries": [],
+    "exampleBody": {
+      "slug": "Engine Building",
+      "description": "Players have a set of personal resources used to progress"
+    },
+    "exampleResponse": {
+      "slug": "Engine Building",
+      "description": "Players have a set of personal resources used to progress"
+    }
+  },
   "GET /api/reviews": {
     "description": "serves an array of all reviews",
-    "queries": ["category", "sort_by", "order"],
+    "queries": ["category", "sort_by", "order", "limit", "p"],
     "exampleResponse": {
       "reviews": [
         {
@@ -35,8 +47,8 @@
     }
   },
   "POST /api/reviews": {
-    "description": "serves an array of all reviews",
-    "queries": ["category", "sort_by", "order"],
+    "description": "creates a new review",
+    "queries": [],
     "exampleBody": {
       "title": "One Night Ultimate Werewolf",
       "designer": "Akihisa Okui",
@@ -80,9 +92,14 @@
       }
     }
   },
+  "DELETE /api/reviews/:review_id": {
+    "description": "deletes the requested review",
+    "queries": [],
+    "exampleResponse": {}
+  },
   "GET /api/reviews/:review_id/comments": {
     "description": "serves an array of all the comments associated with the end point's review_id",
-    "queries": [],
+    "queries": ["limit", "p"],
     "exampleResponse": {
       "comments": {
         "comment_id": 1,
@@ -125,7 +142,7 @@
     }
   },
   "DELETE /api/comments/:comment_id": {
-    "description": "removes rows with the given comment_id from the database",
+    "description": "removes row with the given comment_id from the database",
     "queries": [],
     "exampleResponse": {}
   },
