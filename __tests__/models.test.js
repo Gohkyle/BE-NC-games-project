@@ -239,6 +239,15 @@ describe("GET /api/reviews", () => {
             expect(reviews).toBeSortedBy("title", { descending: true });
           });
       });
+      test("200: reviews can be sorted by comment_count via query", () => {
+        return request(app)
+          .get("/api/reviews?sort_by=comment_count")
+          .expect(200)
+          .then(({ body: { reviews } }) => {
+            expect(reviews).toBeSortedBy("comment_count", { descending: true });
+          });
+      });
+
       describe("Error Handling:", () => {
         test("400: only accepts set column names", () => {
           return request(app)

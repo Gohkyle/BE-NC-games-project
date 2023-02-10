@@ -27,6 +27,7 @@ exports.fetchReviews = (
     "category",
     "created_at",
     "votes",
+    "comment_count",
   ];
 
   let queryValues = [limit, limit * (p - 1)];
@@ -68,7 +69,7 @@ exports.fetchReviews = (
 
   queryStr += `
   GROUP BY reviews.review_id
-  ORDER BY reviews.${sort_by} ${order_by}
+  ORDER BY ${sort_by} ${order_by}
   OFFSET $2 ROWS FETCH NEXT $1 ROWS ONLY
   ;`;
 
