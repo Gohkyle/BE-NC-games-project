@@ -127,8 +127,8 @@ exports.patchComment = (request, response, next) => {
 exports.postReview = (request, response, next) => {
   const requestBody = request.body;
   addReview(requestBody)
-    .then((review) => {
-      response.status(201).send({ review });
+    .then((postedReview) => {
+      response.status(201).send({ postedReview });
     })
     .catch(next);
 };

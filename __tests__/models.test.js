@@ -407,22 +407,22 @@ describe("POST /api/reviews", () => {
       .post("/api/reviews")
       .send(reviewRequestBody)
       .expect(201)
-      .then(({ body: { review } }) => {
-        expect(review).toHaveProperty("owner", "philippaclaire9");
-        expect(review).toHaveProperty("title", "Catan");
-        expect(review).toHaveProperty(
+      .then(({ body: { postedReview } }) => {
+        expect(postedReview).toHaveProperty("owner", "philippaclaire9");
+        expect(postedReview).toHaveProperty("title", "Catan");
+        expect(postedReview).toHaveProperty(
           "review_body",
           "When I first opened it I was really put off by the amount of instructions- don’t be…once you start playing it is easy to understand and great fun for kids and parents!"
         );
-        expect(review).toHaveProperty("designer", "Klaus Teuber");
-        expect(review).toHaveProperty("category", "children's games");
-        expect(review).toHaveProperty(
+        expect(postedReview).toHaveProperty("designer", "Klaus Teuber");
+        expect(postedReview).toHaveProperty("category", "children's games");
+        expect(postedReview).toHaveProperty(
           "review_img_url",
           "https://store-images.s-microsoft.com/image/apps.15567.14321522258952035.0bdbf2e3-3d9e-4997-92d8-7874c1432866.b0f7e376-74ca-4321-81f0-0c90a485beb1"
         );
-        expect(review).toHaveProperty("review_id", 14);
-        expect(review).toHaveProperty("votes", 0);
-        expect(review).toHaveProperty("created_at");
+        expect(postedReview).toHaveProperty("review_id", 14);
+        expect(postedReview).toHaveProperty("votes", 0);
+        expect(postedReview).toHaveProperty("created_at");
       });
   });
   test("201: also responds with a comment_count key", () => {
@@ -440,8 +440,8 @@ describe("POST /api/reviews", () => {
       .post("/api/reviews")
       .send(reviewRequestBody)
       .expect(201)
-      .then(({ body: { review } }) => {
-        expect(review).toHaveProperty("comment_count", 0);
+      .then(({ body: { postedReview } }) => {
+        expect(postedReview).toHaveProperty("comment_count", 0);
       });
   });
   test("200: database has a new entry", () => {
@@ -482,8 +482,8 @@ describe("POST /api/reviews", () => {
       .post("/api/reviews")
       .send(reviewRequestBody)
       .expect(201)
-      .then(({ body: { review } }) => {
-        expect(review).toHaveProperty(
+      .then(({ body: { postedReview } }) => {
+        expect(postedReview).toHaveProperty(
           "review_img_url",
           "https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg?w=700&h=700"
         );
