@@ -254,7 +254,7 @@ describe("GET /api/reviews", () => {
             .get("/api/reviews?sort_by=date")
             .expect(400)
             .then(({ body: { msg } }) => {
-              expect(msg).toBe("Bad Request: Column does not exist!");
+              expect(msg).toBe("Bad Request: invalid sort_by");
             });
         });
       });

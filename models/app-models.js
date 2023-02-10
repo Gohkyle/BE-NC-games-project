@@ -35,7 +35,7 @@ exports.fetchReviews = (
   if (!acceptedSort_by.includes(sort_by)) {
     return Promise.reject({
       statusCode: 400,
-      msg: "Bad Request: Column does not exist!",
+      msg: "Bad Request: invalid sort_by",
     });
   }
 
