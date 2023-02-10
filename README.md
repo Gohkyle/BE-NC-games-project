@@ -4,9 +4,11 @@
 
 [Kyle's super amazing game review API](https://kyles-super-amazing-game-review-api.onrender.com/api) was built for the purpose of accessing application data programmatically. The intention here is to mimic the building of a real world backend service (such as reddit) which should provide this information to the front end architecture.
 
-The database will be PSQL and interactaction are through node-postgres.
+The database will be PSQL and interactions are through node-postgres.
 
-## HOW TO CLONE
+## HOW TO RUN LOCALLY
+
+### CLONING
 
 To make a local clone of the API, run `git clone https://github.com/Gohkyle/BE-NC-games-project.git`
 
